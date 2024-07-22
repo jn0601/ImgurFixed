@@ -43,7 +43,7 @@
 
         $.ajax({
           type: 'POST',
-          url: 'controller.php',
+          url: '../api/controller.php',
           data: {
             imgurUrls: imgurUrls
           },
