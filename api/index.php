@@ -17,7 +17,7 @@
       <h3>Input imgur links here:</h3>
       <div class="form_wrapper">
         <form id="imgurForm">
-          <label for="input" class="form-label">Input:</label>
+          <label for="input" class="form-label">For example: https://i.imgur.com/abc.mp4</label>
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <div class="button">
             <button type="submit" class="btn btn-primary">Execute</button>
@@ -28,6 +28,7 @@
       <div id="resultWrapper" style="display: none;">
         <h3>Output links:</h3>
         <div class="form_wrapper">
+          <label for="output" class="form-label">After removing prefix i and postfix .mp4 for a standard link:</label>
           <textarea id="result" readonly></textarea>
         </div>
       </div>
