@@ -17,7 +17,7 @@
       <h3>Input imgur links here:</h3>
       <div class="form_wrapper">
         <form id="imgurForm">
-          <label for="input" class="form-label">Input link:</label>
+          <label for="input" class="form-label">Input:</label>
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <div class="button">
             <button type="submit" class="btn btn-primary">Execute</button>
