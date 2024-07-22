@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="../css/style.css">
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
 </head>
 
 <body>
@@ -17,51 +18,27 @@
       <h3>Input imgur links here:</h3>
       <div class="form_wrapper">
         <form id="imgurForm">
-          <label for="input" class="form-label">For example: https://i.imgur.com/abc.mp4</label>
+          <label for="input" class="form-label">For example: https://i.imgur.com/FCwNSbY.mp4</label>
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <div class="button">
             <button type="submit" class="btn btn-primary">Execute</button>
           </div>
         </form>
       </div>
-
       <div id="resultWrapper" style="display: none;">
         <h3>Output links:</h3>
         <div class="form_wrapper">
           <label for="output" class="form-label">After removing prefix i and postfix .mp4 for a standard link:</label>
           <textarea id="result" readonly></textarea>
         </div>
+        <br>
+
+        <div id="videoContainer"></div> <!-- Container for videos -->
       </div>
     </div>
   </div>
 
-  <script>
-    $(document).ready(function() {
-      $('#imgurForm').on('submit', function(event) {
-        event.preventDefault();
-
-        var imgurUrls = $('#imgurUrls').val();
-
-        $.ajax({
-          type: 'POST',
-          url: 'controller.php',
-          data: {
-            imgurUrls: imgurUrls
-          },
-          dataType: 'json',
-          success: function(response) {
-            $('#result').val(response.transformedUrls); // Set the value of the textarea
-            $('#resultWrapper').show(); // Show the result section
-          },
-          error: function(xhr, status, error) {
-            console.error('AJAX Error:', error);
-            $('#result').val('Error occurred while transforming the URLs.');
-            $('#resultWrapper').show(); // Show the result section
-          }
-        });
-      });
-    });
-  </script>
+  <script src="../js/main.js"></script>
 </body>
 
 </html>

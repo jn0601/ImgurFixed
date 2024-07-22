@@ -1,12 +1,13 @@
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: Figtree, ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", Segoe UI Symbol, "Noto Color Emoji";
   /* background-color: #131826; */
   --tw-bg-opacity: 1;
   background-color: rgb(17 24 39 / var(--tw-bg-opacity));
-}
-
-form {
 }
 
 h3 {
