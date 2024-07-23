@@ -63,8 +63,8 @@ textarea {
 .button {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding-top: 0;
+  justify-content: space-around;
+  padding-top: 10px;
 }
 
 #resultWrapper {

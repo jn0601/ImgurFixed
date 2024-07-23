@@ -32,7 +32,11 @@
           <textarea id="result" readonly></textarea>
         </div>
         <br>
-
+        <div class="button">
+          <button id="downloadBtn" class="btn btn-success">Download All Videos</button>
+          <!-- <button id="downloadWithIdmBtn" class="btn btn-success">Download All Videos With IDM</button> -->
+        </div>
+        <br>
         <div id="videoContainer"></div> <!-- Container for videos -->
       </div>
     </div>
