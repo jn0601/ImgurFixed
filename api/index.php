@@ -28,8 +28,6 @@
         <h4>- Mass download.</h4>
         <h4>- Recover gifs that are hidden by Imgur.</h4>
       </div>
-      <div class="separator">
-      </div>
       <div class="form_wrapper">
         <form id="imgurForm">
           <label class="form-label">Input your Imgur links here:</label>
