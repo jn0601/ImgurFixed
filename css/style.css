@@ -10,10 +10,19 @@ body {
   background-color: rgb(17 24 39 / var(--tw-bg-opacity));
 }
 
+h1, h2 {
+  display: none;
+}
 h3 {
   text-align: center;
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity));
+}
+
+h4 {
+  font-size: 1.2rem;
+  --tw-text-opacity: 1;
+  color: white;
 }
 
 .wrapper {
@@ -70,4 +79,18 @@ textarea {
 #resultWrapper {
   width: 100%;
   max-width: 28rem; 
+}
+
+.what_it_does {
+  margin: 10px 0px;
+}
+
+.separator {
+  border-top: 1px solid #D8D8D8;
+  margin-top: 10px;
+  padding-top: 10px;
+}
+
+.author {
+  text-align: end;
 }

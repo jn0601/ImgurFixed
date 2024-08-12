@@ -12,42 +12,44 @@ $(document).ready(function () {
       },
       dataType: "json",
       success: function (response) {
-        $("#result").val(response.transformedUrls); // Set the value of the textarea
-        $("#resultWrapper").show(); // Show the result section
+        if (response.transformedUrls.trim() === "") {
+          toastr.error("An error occurred while processing the request.");
+        } else {
+          $("#result").val(response.transformedUrls); // Set the value of the textarea
+          $("#resultWrapper").show(); // Show the result section
+          toastr.success("Successfully!");
+          // Clear the video container
+          $("#videoContainer").empty();
 
-        // Clear the video container
-        $("#videoContainer").empty();
+          // Split the transformed URLs into an array
+          var urls = response.transformedUrls.split("\n");
 
-        // Split the transformed URLs into an array
-        var urls = response.transformedUrls.split("\n");
+          // Loop through each URL and create a video element
+          urls.forEach(function (url) {
+            var code = url.split("/").pop(); // Get the code after imgur.com/
+            var videoUrl = "https://i.imgur.com/" + code + ".mp4";
 
-        // Loop through each URL and create a video element
-        urls.forEach(function (url) {
-          var code = url.split("/").pop(); // Get the code after imgur.com/
-          var videoUrl = "https://i.imgur.com/" + code + ".mp4";
+            var videoElement = $("<video>", {
+              autoplay: true,
+              controls: true,
+              loop: true,
+              muted: true,
+              "data-id": code,
+              width: "100%",
+              height: "auto",
+              src: videoUrl,
+              frameborder: 0,
+            });
 
-          var videoElement = $("<video>", {
-            autoplay: true,
-            controls: true,
-            loop: true,
-            muted: true,
-            "data-id": code,
-            width: "100%",
-            height: "auto",
-            src: videoUrl,
-            frameborder: 0,
+            $("#videoContainer").append(videoElement);
           });
-
-          // videoElement.attr("__idm_id__", code); // Add __idm_id__ attribute
-
-          // Append the video element to the container
-          $("#videoContainer").append(videoElement);
-        });
+        }
       },
       error: function (xhr, status, error) {
         console.error("AJAX Error:", error);
-        $("#result").val("Error occurred while transforming the URLs.");
-        $("#resultWrapper").show(); // Show the result section
+        // $("#result").val("Error occurred while transforming the URLs.");
+        // $("#resultWrapper").show(); // Show the result section
+        toastr.error("An error occurred while processing the request.");
       },
     });
 
@@ -73,23 +75,5 @@ $(document).ready(function () {
         });
       }
     });
-
-    // $("#downloadWithIdmBtn").on("click", function () {
-    //   if (confirm("Are you sure you want to download all videos with IDM?")) {
-    //     $("#videoContainer video").each(function (index) {
-    //       var videoSrc = $(this).attr("src");
-
-    //       setTimeout(() => {
-    //         var link = document.createElement("a");
-    //         link.href = videoSrc;
-    //         link.download = ""; // This is necessary to trigger the download
-    //         link.style.display = "none";
-    //         document.body.appendChild(link);
-    //         link.click();
-    //         document.body.removeChild(link);
-    //       }, index * 1000); // Delay of 1 second between each download
-    //     });
-    //   }
-    // });
   });
 });
