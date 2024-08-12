@@ -73,7 +73,6 @@ textarea {
   display: flex;
   align-items: center;
   justify-content: space-around;
-  padding-top: 10px;
 }
 
 #resultWrapper {
@@ -87,4 +86,21 @@ textarea {
 
 .top_bottom {
   margin: 10px 0px;
+}
+
+#scrollToTopBtn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 15px;
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 1000;
+}
+
+.output {
+  margin-bottom: 15px;
 }

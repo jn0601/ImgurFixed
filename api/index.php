@@ -40,10 +40,10 @@
           </div>
         </form>
       </div>
-      <div id="resultWrapper" style="display: none;">
-        <h3>Output links:</h3>
+      <div id="resultWrapper" class="top_bottom" style="display: none;">
+        <h3 class="output">Output links:</h3>
         <div class="form_wrapper">
-          <label for="output" class="form-label">After removing prefix i and postfix .mp4 for a standard link:</label>
+          <label for="output" class="form-label">After removing prefix i. and postfix .mp4 for a standard pattern:</label>
           <textarea id="result" readonly></textarea>
         </div>
         <br>
@@ -55,6 +55,7 @@
       </div>
     </div>
   </div>
+  <button id="scrollToTopBtn" style="display: none;">Back To Top</button>
 
   <script src="../js/main.js"></script>
 </body>
