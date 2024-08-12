@@ -81,11 +81,10 @@ textarea {
   max-width: 28rem; 
 }
 
-.what_it_does {
-  margin: 10px 0px;
-}
-
-
 .author {
   text-align: end;
+}
+
+.top_bottom {
+  margin: 10px 0px;
 }
