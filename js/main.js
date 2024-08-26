@@ -80,11 +80,21 @@ $(document).ready(function () {
       if (confirm("Are you sure you want to download all videos?")) {
         $("#videoContainer video").each(function () {
           var videoSrc = $(this).attr("src");
+          // videoSrc.split("/").pop() splits the src URL by slashes (/) and returns the last part of the URL, which is the filename (e.g., "ECPM4F6.mp4").
           var filename = videoSrc.split("/").pop();
-
+          // fetch(videoSrc) sends a network request to download the video file at the URL stored in videoSrc.
+          // The fetch function returns a Promise that resolves to the response object once the request completes.
+          // .then((response) => response.blob()) converts the response to a blob (a binary large object), which represents the video file as raw data.
           fetch(videoSrc)
             .then((response) => response.blob())
             .then((blob) => {
+              // The blob is passed to the next .then() function, which creates an invisible <a> (anchor) element to simulate a file download.
+              // document.createElement("a") creates the anchor element.
+              // link.href = window.URL.createObjectURL(blob); creates a temporary URL pointing to the blob (the video file) and sets it as the href of the anchor element.
+              // link.download = filename; sets the download attribute of the anchor element to the filename (e.g., "ECPM4F6.mp4"), so the browser knows what to name the downloaded file.
+              // document.body.appendChild(link); adds the anchor element to the document body (though it won't be visible).
+              // link.click(); simulates a click on the anchor element, which triggers the download.
+              // document.body.removeChild(link); removes the anchor element from the document after the download starts, cleaning up.
               var link = document.createElement("a");
               link.href = window.URL.createObjectURL(blob);
               link.download = filename;

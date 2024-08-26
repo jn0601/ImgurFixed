@@ -1,5 +1,6 @@
 <?php
-function transformImgurUrls($inputUrls) {
+function transformImgurUrls($inputUrls)
+{
     // Split input by new lines and process each URL
     $urls = explode("\n", $inputUrls);
     $transformedUrls = array();
@@ -9,15 +10,6 @@ function transformImgurUrls($inputUrls) {
 
     // Regular expression to match the second pattern (e.g., https://imgur.com/abc)
     $pattern2 = '/^https?:\/\/imgur\.com\/([a-zA-Z0-9]+)$/';
-
-    // foreach ($urls as $url) {
-    //     $url = trim($url); // Trim whitespace
-    //     if (preg_match($pattern, $url, $matches)) {
-    //         $transformedUrls[] = "https://imgur.com/" . $matches[1];
-    //     } else {
-    //         $transformedUrls[] = $url;
-    //     }
-    // }
 
     foreach ($urls as $url) {
         $url = trim($url); // Trim whitespace
@@ -30,6 +22,13 @@ function transformImgurUrls($inputUrls) {
         elseif (preg_match($pattern2, $url, $matches)) {
             $transformedUrls[] = "https://imgur.com/" . $matches[1];
         }
+
+        // $matches = [
+        //     0 => "https://i.imgur.com/abc123.mp4", // The entire match
+        //     1 => "abc123",                         // The first capturing group (the code)
+        //     2 => "mp4"                             // The second capturing group (the extension)
+        // ];
+        
         // Else, skip the URL if it doesn't match the pattern
     }
 
@@ -43,4 +42,3 @@ if (isset($_POST['imgurUrls'])) {
     $transformedUrls = transformImgurUrls($inputUrls);
     echo json_encode(['transformedUrls' => $transformedUrls]);
 }
-?>

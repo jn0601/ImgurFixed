@@ -19,11 +19,11 @@
 
 <body>
   <h1>Fix Imgur Link</h1>
-  <h2>Fix Imgur Link</h2>
   <div class="top_bottom">
     <div class="wrapper">
-      <h3>What does this do?</h3>
-      <div class="top_bottom">
+      <h2>What does this do?</h2>
+      <div class="description">
+        <h3>Fix Imgur Link</h3>
         <h4>- Transform your links into a standard pattern.</h4>
         <h4>- Mass download.</h4>
         <h4>- Recover gifs that are hidden by Imgur.</h4>

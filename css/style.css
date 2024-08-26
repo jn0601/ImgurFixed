@@ -10,10 +10,10 @@ body {
   background-color: rgb(17 24 39 / var(--tw-bg-opacity));
 }
 
-h1, h2 {
+h1, h3 {
   display: none;
 }
-h3 {
+h2 {
   text-align: center;
   --tw-text-opacity: 1;
   color: rgb(107 114 128 / var(--tw-text-opacity));
@@ -88,6 +88,13 @@ textarea {
   margin: 10px 0px;
 }
 
+.left_right {
+  margin: 0px 10px;
+}
+.margin_10 {
+  margin: 10px;
+}
+
 #scrollToTopBtn {
   position: fixed;
   bottom: 20px;
@@ -103,4 +110,26 @@ textarea {
 
 .output {
   margin-bottom: 15px;
+}
+
+.description {
+  margin: 10px 30px;
+}
+
+@media (max-width: 500px) {
+  h4 {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 429px) {
+  .description {
+    margin: 10px 35px;
+  }
+}
+
+@media (max-width: 389px) {
+  .description {
+    margin: 10px 10px 10px 20px;
+  }
 }
