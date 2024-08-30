@@ -69,8 +69,11 @@ function transformImgurUrls($inputUrls)
 
     foreach ($urls as $url) {
         $url = trim($url); // Trim whitespace
-        // Initialize URL as an error if it doesn't match any pattern
-        $isValidUrl = false;
+
+        // Skip empty strings
+        if (empty($url)) {
+            continue;
+        }
 
         // Check if the URL matches the first pattern
         if (preg_match($pattern1, $url, $matches)) {
@@ -78,7 +81,6 @@ function transformImgurUrls($inputUrls)
             $statusCode = checkUrlStatus($url);
             if ($statusCode == 200) {
                 $transformedUrls[] = "https://imgur.com/" . $matches[1];
-                $isValidUrl = true;
             } else {
                 $errorUrls[] = $url; // Add to error list if 403 or 404
                 continue;
@@ -90,7 +92,6 @@ function transformImgurUrls($inputUrls)
             $statusCode = checkUrlStatus($url);
             if ($statusCode == 200) {
                 $transformedUrls[] = "https://imgur.com/" . $matches[1];
-                $isValidUrl = true;
             } else {
                 $errorUrls[] = $url; // Add to error list if 403 or 404
                 continue;
@@ -107,14 +108,13 @@ function transformImgurUrls($inputUrls)
                 $albumImages = fetchImgurAlbumImages($albumId);
                 if ($albumImages) {
                     $transformedUrls = array_merge($transformedUrls, $albumImages);
-                    $isValidUrl = true;
                 } else {
                     $errorUrls[] = $url;
                 }
             } else {
                 $errorUrls[] = $url;
             }
-        } elseif (!$isValidUrl) {
+        } else {
             $errorUrls[] = $url; // Add non-matching URLs to error list
         }
 
