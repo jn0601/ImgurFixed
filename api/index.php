@@ -2,6 +2,18 @@
 <html lang="en">
 
 <head>
+  <!-- Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-YF2KE9HRM0"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', 'G-YF2KE9HRM0');
+  </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Fix imgur link</title>
@@ -40,6 +52,15 @@
           </div>
         </form>
       </div>
+      <br>
+      <div id="errorWrapper" class="top_bottom" style="display: none;">
+        <h3 class="output">Error links:</h3>
+        <div class="form_wrapper">
+          <label for="error" class="form-label">Unable to retrieve links below:</label>
+          <textarea id="error_result" readonly></textarea>
+        </div>
+      </div>
+      <br>
       <div id="resultWrapper" class="top_bottom" style="display: none;">
         <h3 class="output">Output links:</h3>
         <div class="form_wrapper">
@@ -57,7 +78,7 @@
   </div>
   <button id="scrollToTopBtn" style="display: none;">Back To Top</button>
 
-  <script src="../js/main.min.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 
 </html>

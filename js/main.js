@@ -22,8 +22,15 @@ $(document).ready(function () {
     });
   };
 
+  // Result
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();
+    // Clear textareas before making the request
+    $("#result").val('');
+    $("#error_result").val('');
+    $("#videoContainer").empty();
+    $("#resultWrapper").hide();
+    $("#errorWrapper").hide();
 
     var imgurUrls = $("#imgurUrls").val();
 
@@ -35,36 +42,44 @@ $(document).ready(function () {
       },
       dataType: "json",
       success: function (response) {
-        if (response.transformedUrls.trim() === "") {
+        console.log(response);
+        const transformedUrls = response.transformedUrls;
+        const errorUrls = response.errorUrls;
+
+        if (errorUrls.length > 0) {
+          $("#error_result").val(errorUrls.join("\n")); // Join array into a string
+          $("#errorWrapper").show(); // Show the result section
+          toastr.error("Some URLs returned errors.");
+        }
+        if (transformedUrls.length === 0) {
           toastr.error("An error occurred while processing the request.");
         } else {
-          $("#result").val(response.transformedUrls); // Set the value of the textarea
+          $("#result").val(transformedUrls.join("\n")); // Join array into a string
           $("#resultWrapper").show(); // Show the result section
           toastr.success("Successfully!");
           // Clear the video container
           $("#videoContainer").empty();
 
-          // Split the transformed URLs into an array
-          var urls = response.transformedUrls.split("\n");
-
           // Loop through each URL and create a video element
-          urls.forEach(function (url) {
-            var code = url.split("/").pop(); // Get the code after imgur.com/
-            var videoUrl = "https://i.imgur.com/" + code + ".mp4";
+          transformedUrls.forEach(function (url) {
+            if (url.trim()) { // Check if URL is not empty
+              var code = url.split("/").pop(); // Get the code after imgur.com/
+              var videoUrl = "https://i.imgur.com/" + code + ".mp4";
 
-            var videoElement = $("<video>", {
-              autoplay: true,
-              controls: true,
-              loop: true,
-              muted: true,
-              "data-id": code,
-              width: "100%",
-              height: "auto",
-              src: videoUrl,
-              frameborder: 0,
-            });
+              var videoElement = $("<video>", {
+                autoplay: true,
+                controls: true,
+                loop: true,
+                muted: true,
+                "data-id": code,
+                width: "100%",
+                height: "auto",
+                src: videoUrl,
+                frameborder: 0,
+              });
 
-            $("#videoContainer").append(videoElement);
+              $("#videoContainer").append(videoElement);
+            }
           });
         }
       },
@@ -76,6 +91,7 @@ $(document).ready(function () {
       },
     });
 
+    // Download
     $("#downloadBtn").on("click", function () {
       if (confirm("Are you sure you want to download all videos?")) {
         $("#videoContainer video").each(function () {

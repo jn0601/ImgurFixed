@@ -75,7 +75,7 @@ textarea {
   justify-content: space-around;
 }
 
-#resultWrapper {
+#resultWrapper, #errorWrapper {
   width: 100%;
   max-width: 28rem; 
 }
