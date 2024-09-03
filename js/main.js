@@ -26,8 +26,8 @@ $(document).ready(function () {
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();
     // Clear textareas before making the request
-    $("#result").val('');
-    $("#error_result").val('');
+    $("#result").val("");
+    $("#error_result").val("");
     $("#videoContainer").empty();
     $("#resultWrapper").hide();
     $("#errorWrapper").hide();
@@ -62,7 +62,8 @@ $(document).ready(function () {
 
           // Loop through each URL and create a video element
           transformedUrls.forEach(function (url) {
-            if (url.trim()) { // Check if URL is not empty
+            if (url.trim()) {
+              // Check if URL is not empty
               var code = url.split("/").pop(); // Get the code after imgur.com/
               var videoUrl = "https://i.imgur.com/" + code + ".mp4";
 

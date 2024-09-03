@@ -67,6 +67,9 @@ function transformImgurUrls($inputUrls)
     // Regular expression to match the album pattern (e.g., https://imgur.com/a/abc)
     $pattern3 = '/^https?:\/\/imgur\.com\/a\/(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]+)$/';
 
+    // Regular expression to match the gallery pattern (e.g., https://imgur.com/gallery/abc)
+    $pattern4 = '/^https?:\/\/imgur\.com\/gallery\/(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]+)$/';
+
     foreach ($urls as $url) {
         $url = trim($url); // Trim whitespace
 
@@ -99,6 +102,24 @@ function transformImgurUrls($inputUrls)
         }
         // Check if the URL matches the album pattern
         elseif (preg_match($pattern3, $url, $matches)) {
+
+            // Check if the transformed URL is valid
+            $statusCode = checkUrlStatus($url);
+            if ($statusCode == 200) {
+                $albumId = $matches[1];
+                // Fetch album images using Imgur API
+                $albumImages = fetchImgurAlbumImages($albumId);
+                if ($albumImages) {
+                    $transformedUrls = array_merge($transformedUrls, $albumImages);
+                } else {
+                    $errorUrls[] = $url;
+                }
+            } else {
+                $errorUrls[] = $url;
+            }
+        }
+        // Check if the URL matches the gallery pattern
+        elseif (preg_match($pattern4, $url, $matches)) {
 
             // Check if the transformed URL is valid
             $statusCode = checkUrlStatus($url);
