@@ -80,6 +80,9 @@ $(document).ready(function () {
               });
 
               $("#videoContainer").append(videoElement);
+              
+              // Explicitly set the muted property
+              videoElement.prop("muted", true);
             }
           });
         }
