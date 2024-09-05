@@ -22,6 +22,54 @@ $(document).ready(function () {
     });
   };
 
+  // Layout toggle buttons
+  $("#columnViewBtn").on("click", function () {
+    $("#videoContainer").removeClass("grid-layout").addClass("column-layout");
+    // Remove the max-width of #resultWrapper
+    $("#resultWrapper").css("max-width", "28rem");
+  });
+
+  $("#gridViewBtn").on("click", function () {
+    $("#videoContainer").removeClass("column-layout").addClass("grid-layout");
+    
+    // Remove the max-width of #resultWrapper
+    $("#resultWrapper").css("max-width", "none");
+  });
+
+  // Default to column layout
+  $("#videoContainer").addClass("column-layout");
+
+  // Detect Fullscreen Mode and Adjust Styles
+  $("#videoContainer").on(
+    "fullscreenchange webkitfullscreenchange mozfullscreenchange MSFullscreenChange",
+    function () {
+      if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      ) {
+        // When entering fullscreen
+        $("#videoContainer video").css("object-fit", "contain"); // Remove zoom-in by using 'contain'
+      } else {
+        // When exiting fullscreen
+        $("#videoContainer.video").css("object-fit", "cover"); // Restore grid view style
+      }
+    }
+  );
+
+  var videoContainer = document.getElementById("videoContainer");
+
+  var sortable = Sortable.create(videoContainer, {
+    animation: 150, // Speed of the drag animation
+    handle: ".form_wrapper", // Restrict drag to the form_wrapper elements
+    ghostClass: "sortable-ghost", // Add a class to the ghost element when dragging
+    onEnd: function (evt) {
+      console.log("Reordered");
+      // Additional actions after reordering can be added here
+    }
+  });
+
   // Result
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();
@@ -66,6 +114,7 @@ $(document).ready(function () {
               // Check if URL is not empty
               var code = url.split("/").pop(); // Get the code after imgur.com/
               var videoUrl = "https://i.imgur.com/" + code + ".mp4";
+              var imgurUrl = "https://imgur.com/" + code;
 
               var videoElement = $("<video>", {
                 autoplay: true,
@@ -79,10 +128,26 @@ $(document).ready(function () {
                 frameborder: 0,
               });
 
-              $("#videoContainer").append(videoElement);
-              
               // Explicitly set the muted property
               videoElement.prop("muted", true);
+
+              // Create the wrapper div and label
+              var wrapperDiv = $("<div>", {
+                class: "form_wrapper",
+              });
+
+              var textareaElement = $("<textarea>", {
+                id: "result",
+                readonly: true,
+                text: imgurUrl, // Set the text to show the imgur URL
+              });
+
+              // Append the textarea, and video element to the wrapper div
+              wrapperDiv.append(textareaElement);
+              wrapperDiv.append(videoElement);
+
+              // Append the wrapper div to the video container
+              $("#videoContainer").append(wrapperDiv);
             }
           });
         }

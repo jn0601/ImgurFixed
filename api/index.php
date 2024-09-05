@@ -27,6 +27,10 @@
   <!-- Toastr JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
   <script async src="//s.imgur.com/min/embed.js" charset="utf-8"></script>
+
+  <!-- sortable -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
 </head>
 
 <body>
@@ -64,22 +68,28 @@
       <br>
       <div id="resultWrapper" class="top_bottom" style="display: none;">
         <h3 class="output">Output links:</h3>
-        <div class="form_wrapper">
-          <label class="form-label">Result:</label>
-          <textarea id="result" readonly></textarea>
+        <div class="flex">
+          <div class="form_wrapper">
+            <label class="form-label">Result:</label>
+            <textarea id="result" readonly></textarea>
+          </div>
         </div>
         <br>
         <div class="button">
           <button id="downloadBtn" class="btn btn-success">Download All Videos</button>
         </div>
         <br>
+        <div class="button-container">
+          <button id="columnViewBtn" class="btn btn-secondary">Single Column</button>
+          <button id="gridViewBtn" class="btn btn-secondary">Grid View</button>
+        </div>
         <div id="videoContainer"></div> <!-- Container for videos -->
       </div>
     </div>
   </div>
   <button id="scrollToTopBtn" style="display: none;">Back To Top</button>
 
-  <script src="../js/main.min.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 
 </html>

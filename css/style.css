@@ -69,6 +69,15 @@ textarea {
   --tw-border-opacity: 1;
 }
 
+#videoContainer textarea {
+  height: 35px;
+  resize: none;
+}
+
+#videoContainer > .form_wrapper {
+  margin: 10px 0px;
+}
+
 .button {
   display: flex;
   align-items: center;
@@ -114,6 +123,43 @@ textarea {
 
 .description {
   margin: 10px 30px;
+}
+
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.button-container {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+/* Default single-column layout */
+#videoContainer.column-layout {
+  display: block; /* Each video will be in its own row */
+}
+
+/* Grid layout */
+#videoContainer.grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); /* Adjust the min width */
+  gap: 10px; /* Gap between videos */
+}
+
+#videoContainer.grid-layout video {
+  height: auto; /* Set a fixed height for each video */
+  width: 100%; /* Ensure videos take full width of their grid column */
+  object-fit: cover; /* Maintain aspect ratio, cropping the overflow */
+  border-radius: 10px; /* Optional: add some border-radius for style */
+}
+
+/* The element being dragged (ghost element) */
+.sortable-ghost {
+  opacity: 0.5;
+  background-color: #f0f0f0;
+  border: 2px dashed #ccc;
 }
 
 @media (max-width: 500px) {
