@@ -211,6 +211,9 @@ $(document).ready(function () {
                     src: videoUrl, // Use .mp4 video URL
                     frameborder: 0,
                   });
+
+                  // Explicitly set the muted property
+                  mediaElement.prop("muted", true);
                 } else {
                   mediaElement = $("<img>", {
                     src: imgURL,
