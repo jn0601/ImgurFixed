@@ -163,14 +163,6 @@ function transformImgurUrls($inputUrls)
             $errorUrls[] = $url; // Add non-matching URLs to error list
         }
 
-
-
-        // $matches = [
-        //     0 => "https://i.imgur.com/abc123.mp4", // The entire match
-        //     1 => "abc123",                         // The first capturing group (the code)
-        //     2 => "mp4"                             // The second capturing group (the extension)
-        // ];
-
         // Else, skip the URL if it doesn't match the pattern
     }
 
