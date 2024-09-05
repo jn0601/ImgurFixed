@@ -53,6 +53,7 @@ h4 {
   padding-right: 1.5rem;
 }
 
+
 label {
   display: block;
   font-size: 0.875rem;
@@ -72,10 +73,27 @@ textarea {
 #videoContainer textarea {
   height: 35px;
   resize: none;
+  width: 90%;
 }
 
 #videoContainer > .form_wrapper {
+  position: relative;
   margin: 10px 0px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 19px;
+  right: 25px;
+}
+
+.fade-out {
+  opacity: 0;
+  transition: opacity 0.5s ease-out;
+}
+
+.hidden {
+  display: none;
 }
 
 .button {
@@ -160,6 +178,57 @@ textarea {
   opacity: 0.5;
   background-color: #f0f0f0;
   border: 2px dashed #ccc;
+}
+
+/* Full-size image modal styles */
+#imageModal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1000; /* Sit on top */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  background-color: rgba(0, 0, 0, 0.9); /* Black with transparency */
+}
+
+#imageModal .modal-content {
+  margin: auto;
+  display: block;
+  max-width: 90%; /* Allow the image to take up to 90% of the screen width */
+  max-height: 90%; /* Allow the image to take up to 90% of the screen height */
+  width: auto; /* Maintain the aspect ratio by letting the width adjust */
+  height: auto; /* Maintain the aspect ratio by letting the height adjust */
+}
+
+#imageModal .close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: white;
+  font-size: 40px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+#imageModal .close:hover,
+#imageModal .close:focus {
+  color: #bbb;
+  text-decoration: none;
+}
+
+#imageModal .modal-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  margin: 0;
+}
+
+#imageModal img {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
 }
 
 @media (max-width: 500px) {

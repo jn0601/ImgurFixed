@@ -23,11 +23,28 @@ function fetchImgurAlbumImages($albumId)
 
     $responseArray = json_decode($response, true);
 
+    // if (isset($responseArray['data']['images']) && is_array($responseArray['data']['images'])) {
+    //     $images = array_map(function ($image) {
+    //         return "https://imgur.com/" . $image['id'];
+    //     }, $responseArray['data']['images']);
+    //     return $images;
+    // }
+
+    // detect image or video
     if (isset($responseArray['data']['images']) && is_array($responseArray['data']['images'])) {
-        $images = array_map(function ($image) {
-            return "https://imgur.com/" . $image['id'];
+        $mediaUrls = array_map(function ($image) {
+            $mediaUrl = "https://i.imgur.com/" . $image['id'];
+            // Append the correct file extension based on type
+            if (strpos($image['type'], 'video') !== false) {
+                // If it's a video
+                $mediaUrl .= ".mp4"; // You might need to adjust based on available formats
+            } else {
+                // If it's an image
+                $mediaUrl .= "." . explode('/', $image['type'])[1];
+            }
+            return $mediaUrl;
         }, $responseArray['data']['images']);
-        return $images;
+        return $mediaUrls;
     }
 
     return array();

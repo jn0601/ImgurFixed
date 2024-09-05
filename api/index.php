@@ -107,7 +107,15 @@
     </div>
   </div>
 
-  <script src="../js/main.min.js"></script>
+  <!-- Modal for Full-size Image -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <div class="modal-image">
+      <img class="modal-content " id="fullSizeImage">
+    </div>
+  </div>
+
+  <script src="../js/main.js"></script>
 </body>
 
 </html>

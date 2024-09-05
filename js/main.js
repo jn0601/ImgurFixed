@@ -31,7 +31,7 @@ $(document).ready(function () {
 
   $("#gridViewBtn").on("click", function () {
     $("#videoContainer").removeClass("column-layout").addClass("grid-layout");
-    
+
     // Remove the max-width of #resultWrapper
     $("#resultWrapper").css("max-width", "none");
   });
@@ -67,10 +67,33 @@ $(document).ready(function () {
     onEnd: function (evt) {
       console.log("Reordered");
       // Additional actions after reordering can be added here
-    }
+    },
   });
 
   var hasShownPopup = false; // Initialize the flag
+
+  // Full-size image modal functionality
+  const modal = document.getElementById("imageModal");
+  const modalImg = document.getElementById("fullSizeImage");
+  const span = document.getElementsByClassName("close")[0];
+
+  // When an image is clicked, open the modal and display the full-size image
+  $(document).on("click", "img", function () {
+    modal.style.display = "block";
+    modalImg.src = this.src;
+  });
+
+  // When the close button is clicked, hide the modal
+  span.onclick = function () {
+    modal.style.display = "none";
+  };
+
+  // Close the modal if clicked outside the image
+  $(modal).on("click", function (e) {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
 
   // Result
   $("#imgurForm").on("submit", function (event) {
@@ -97,14 +120,39 @@ $(document).ready(function () {
         const errorUrls = response.errorUrls;
 
         if (errorUrls.length > 0) {
-          $("#error_result").val(errorUrls.join("\n")); // Join array into a string
+          // $("#error_result").val(errorUrls.join("\n")); // Join array into a string
+          $("#result").val(
+            errorUrls
+              .map((url) => {
+                // Extract the code before the '.' after replacing the domain
+                var code = url
+                  .replace(/^https:\/\/i.imgur.com\//, "")
+                  .split(".")[0];
+                return "https://imgur.com/" + code; // Return the formatted URL
+              })
+              .join("\n")
+          ); // Replace base URL in the result
           $("#errorWrapper").show(); // Show the result section
           toastr.error("Some URLs returned errors.");
         }
         if (transformedUrls.length === 0) {
           toastr.error("An error occurred while processing the request.");
         } else {
-          $("#result").val(transformedUrls.join("\n")); // Join array into a string
+          // $("#result").val(transformedUrls.join("\n")); // Join array into a string
+          $("#result").val(
+            transformedUrls
+              .map((url) => {
+                // Extract the code from the URL
+                // Split the URL to get the code correctly
+                var parts = url.split("/");
+                var lastPart = parts.pop();
+                var code = lastPart.split(".")[0]; // Extract code before '.'
+
+                // Construct the formatted URL
+                return "https://imgur.com/" + code;
+              })
+              .join("\n") // Join the URLs with newline
+          ); // Replace base URL in the result
           $("#resultWrapper").show(); // Show the result section
           toastr.success("Successfully!");
           // Clear the video container
@@ -113,40 +161,93 @@ $(document).ready(function () {
           // Loop through each URL and create a video element
           transformedUrls.forEach(function (url) {
             if (url.trim()) {
-              // Check if URL is not empty
               var code = url.split("/").pop(); // Get the code after imgur.com/
-              var videoUrl = "https://i.imgur.com/" + code + ".mp4";
-              var imgurUrl = "https://imgur.com/" + code;
+              var videoUrl = "https://i.imgur.com/" + code;
+              var imgURL = "https://i.imgur.com/" + code; // Image fallback URL
 
-              var videoElement = $("<video>", {
-                autoplay: true,
-                controls: true,
-                loop: true,
-                muted: true,
-                "data-id": code,
-                width: "100%",
-                height: "auto",
-                src: videoUrl,
-                frameborder: 0,
-              });
+              // Determine if URL is video or image
+              var isVideo = url.endsWith(".mp4") || url.endsWith(".gifv");
 
-              // Explicitly set the muted property
-              videoElement.prop("muted", true);
+              // Check if there's no extension and assume video, or add fallback logic
+              if (!url.includes(".")) {
+                isVideo = true; // Assume it's a video if no extension is present
+              }
+
+              // var srcUrl = isVideo ? videoUrl : imgURL; // Use imgURL for images
+              if (isVideo) {
+                var srcUrl = videoUrl;
+              }
+
+              var mediaElement;
+              if (isVideo) {
+                mediaElement = $("<video>", {
+                  autoplay: true,
+                  controls: true,
+                  loop: true,
+                  muted: true,
+                  "data-id": code,
+                  width: "100%",
+                  height: "auto",
+                  src: srcUrl, // Use .mp4 video URL
+                  frameborder: 0,
+                });
+
+                // Explicitly set the muted property
+                mediaElement.prop("muted", true);
+              } else {
+                // Regular expression to check for a file extension at the end of the URL
+                var hasExtension = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
+
+                if (!hasExtension) {
+                  var videoUrl = "https://i.imgur.com/" + code + ".mp4";
+                  mediaElement = $("<video>", {
+                    autoplay: true,
+                    controls: true,
+                    loop: true,
+                    muted: true,
+                    "data-id": code,
+                    width: "100%",
+                    height: "auto",
+                    src: videoUrl, // Use .mp4 video URL
+                    frameborder: 0,
+                  });
+                } else {
+                  mediaElement = $("<img>", {
+                    src: imgURL,
+                    alt: code,
+                    width: "100%",
+                    height: "auto",
+                  });
+                }
+              }
 
               // Create the wrapper div and label
               var wrapperDiv = $("<div>", {
                 class: "form_wrapper",
               });
 
+              // Split the URL to get the code correctly
+              var parts = url.split("/");
+              var lastPart = parts.pop();
+              var code = lastPart.split(".")[0]; // Extract code before '.'
+              var imgurUrl = "https://imgur.com/" + code;
               var textareaElement = $("<textarea>", {
                 id: "result",
                 readonly: true,
                 text: imgurUrl, // Set the text to show the imgur URL
               });
 
-              // Append the textarea, and video element to the wrapper div
+              // Create the close button
+              var closeButton = $("<button>", {
+                type: "button",
+                class: "close-btn btn btn-danger",
+                html: "&times;",
+              });
+
+              // Append the element to the wrapper div
               wrapperDiv.append(textareaElement);
-              wrapperDiv.append(videoElement);
+              wrapperDiv.append(closeButton);
+              wrapperDiv.append(mediaElement);
 
               // Append the wrapper div to the video container
               $("#videoContainer").append(wrapperDiv);
@@ -155,7 +256,7 @@ $(document).ready(function () {
 
           // Show the popup only if it hasn't been shown yet
           if (!hasShownPopup) {
-            $('#infoModal').modal('show');
+            $("#infoModal").modal("show");
             hasShownPopup = true; // Set the flag to true after showing the popup
           }
         }
@@ -166,6 +267,19 @@ $(document).ready(function () {
         // $("#resultWrapper").show(); // Show the result section
         toastr.error("An error occurred while processing the request.");
       },
+    });
+
+    // Close button functionality
+    $(document).on("click", ".close-btn", function () {
+      var formWrapper = $(this).closest(".form_wrapper");
+
+      // Add fade-out animation class
+      formWrapper.addClass("fade-out");
+
+      // After the animation is done (0.5s), hide the element
+      setTimeout(function () {
+        formWrapper.addClass("hidden");
+      }, 500);
     });
 
     // Download
