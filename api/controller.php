@@ -78,33 +78,58 @@ function transformImgurUrls($inputUrls)
             continue;
         }
 
-        // Check if the URL matches the first pattern
-        if (preg_match($pattern1, $url, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($url);
-            if ($statusCode == 200) {
-                $transformedUrls[] = "https://imgur.com/" . $matches[1];
-            } else {
-                $errorUrls[] = $url; // Add to error list if 403 or 404
-                continue;
-            }
-        }
-        // Check if the URL matches the second pattern
-        elseif (preg_match($pattern2, $url, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($url);
-            if ($statusCode == 200) {
-                $transformedUrls[] = "https://imgur.com/" . $matches[1];
-            } else {
-                $errorUrls[] = $url; // Add to error list if 403 or 404
-                continue;
-            }
-        }
-        // Check if the URL matches the album pattern
-        elseif (preg_match($pattern3, $url, $matches)) {
+        // Extract the code after the last hyphen or slash
+        // explode: This function splits a string into an array using a specified delimiter.
+        // [
+        //     "https:",
+        //     "",
+        //     "imgur.com",
+        //     "neo-haerin-pwUecWV"
+        //   ]
+        // end: This function moves the internal pointer of an array to its last element and returns the value of that element.
+        $urlParts = explode('/', $url);
+        $lastPart = end($urlParts); // $lastPart is neo-haerin-pwUecWV:
 
+        // Check if the last part contains a hyphen
+        if (strpos($lastPart, '-') !== false) {
+            // Extract the code after the last hyphen
+            // strrchr($lastPart, '-') returns -pwUecWV
+            // substr('-pwUecWV', 1) returns pwUecWV
+            // substr(..., 1) removes the hyphen from the beginning of this substring, 
+            // leaving you with only the part of the string after the last hyphen.
+            $lastPart = substr(strrchr($lastPart, '-'), 1);
+        }
+
+        // Construct the adjusted URL
+        $baseUrl = preg_replace('/\/[^\/]+$/', '', $url); // Remove the last segment
+        $adjustedUrl = $baseUrl . '/' . $lastPart;
+
+        // Check if the adjusted URL matches the first pattern
+        if (preg_match($pattern1, $adjustedUrl, $matches)) {
             // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($url);
+            $statusCode = checkUrlStatus($adjustedUrl);
+            if ($statusCode == 200) {
+                $transformedUrls[] = "https://imgur.com/" . $matches[1];
+            } else {
+                $errorUrls[] = $url; // Add to error list if 403 or 404
+                continue;
+            }
+        }
+        // Check if the adjusted URL matches the second pattern
+        elseif (preg_match($pattern2, $adjustedUrl, $matches)) {
+            // Check if the transformed URL is valid
+            $statusCode = checkUrlStatus($adjustedUrl);
+            if ($statusCode == 200) {
+                $transformedUrls[] = "https://imgur.com/" . $matches[1];
+            } else {
+                $errorUrls[] = $url; // Add to error list if 403 or 404
+                continue;
+            }
+        }
+        // Check if the adjusted URL matches the album pattern
+        elseif (preg_match($pattern3, $adjustedUrl, $matches)) {
+            // Check if the transformed URL is valid
+            $statusCode = checkUrlStatus($adjustedUrl);
             if ($statusCode == 200) {
                 $albumId = $matches[1];
                 // Fetch album images using Imgur API
@@ -118,11 +143,10 @@ function transformImgurUrls($inputUrls)
                 $errorUrls[] = $url;
             }
         }
-        // Check if the URL matches the gallery pattern
-        elseif (preg_match($pattern4, $url, $matches)) {
-
+        // Check if the adjusted URL matches the gallery pattern
+        elseif (preg_match($pattern4, $adjustedUrl, $matches)) {
             // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($url);
+            $statusCode = checkUrlStatus($adjustedUrl);
             if ($statusCode == 200) {
                 $albumId = $matches[1];
                 // Fetch album images using Imgur API
