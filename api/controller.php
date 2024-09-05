@@ -101,6 +101,14 @@ function transformImgurUrls($inputUrls)
         }
 
         // Construct the adjusted URL
+        // preg_replace Function: This function performs a regular expression search and replace. It searches for a pattern in a string and replaces it with a specified replacement.
+        // Pattern: /\/[^\/]+$/
+        // \/: Matches a literal forward slash /.
+        // [^\/]+: Matches one or more characters that are not a forward slash /. The ^ inside square brackets [] indicates a negation, so [^\/] matches any character except /.
+        // $: Indicates the end of the string. This ensures that the pattern matches the last segment of the URL after the final /.
+        // Replacement: '' (an empty string). This means the matched pattern will be removed from the string.
+        // Purpose: This line removes the last segment from the URL. For example, 
+        // if $url is https://imgur.com/neo-haerin-pwUecWV, the result stored in $baseUrl will be https://imgur.com.
         $baseUrl = preg_replace('/\/[^\/]+$/', '', $url); // Remove the last segment
         $adjustedUrl = $baseUrl . '/' . $lastPart;
 
