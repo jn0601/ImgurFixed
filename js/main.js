@@ -70,6 +70,8 @@ $(document).ready(function () {
     }
   });
 
+  var hasShownPopup = false; // Initialize the flag
+
   // Result
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();
@@ -150,6 +152,12 @@ $(document).ready(function () {
               $("#videoContainer").append(wrapperDiv);
             }
           });
+
+          // Show the popup only if it hasn't been shown yet
+          if (!hasShownPopup) {
+            $('#infoModal').modal('show');
+            hasShownPopup = true; // Set the flag to true after showing the popup
+          }
         }
       },
       error: function (xhr, status, error) {
