@@ -64,6 +64,8 @@ $(document).ready(function () {
     animation: 150, // Speed of the drag animation
     handle: ".form_wrapper", // Restrict drag to the form_wrapper elements
     ghostClass: "sortable-ghost", // Add a class to the ghost element when dragging
+    filter: ".copy-btn, .url-textarea, .close-btn", // Filter out the elements from triggering the drag event
+    preventOnFilter: true, // Prevent the default action when clicking the filtered elements
     onEnd: function (evt) {
       console.log("Reordered");
       // Additional actions after reordering can be added here
@@ -224,9 +226,16 @@ $(document).ready(function () {
               var code = lastPart.split(".")[0]; // Extract code before '.'
               var imgurUrl = "https://imgur.com/" + code;
               var textareaElement = $("<textarea>", {
+                class: "url-textarea",
                 id: "result",
                 readonly: true,
                 text: imgurUrl, // Set the text to show the imgur URL
+              });
+
+              var copyButton = $("<button>", {
+                type: "button",
+                class: "copy-btn btn btn-primary",
+                html: "Copy",
               });
 
               // Create the close button
@@ -238,6 +247,7 @@ $(document).ready(function () {
 
               // Append the element to the wrapper div
               wrapperDiv.append(textareaElement);
+              wrapperDiv.append(copyButton);
               wrapperDiv.append(closeButton);
               wrapperDiv.append(mediaElement);
 
@@ -307,5 +317,37 @@ $(document).ready(function () {
         });
       }
     });
+  });
+
+  // Copy button functionality
+  $(document).on("click", ".copy-btn", function () {
+    // Get the closest form_wrapper div
+    const formWrapper = $(this).closest(".form_wrapper");
+    // Find the textarea within this form_wrapper
+    const textarea = formWrapper.find(".url-textarea");
+
+    // Copy the value of the textarea
+    textarea.select();
+    textarea[0].setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand("copy");
+
+    // Change button text to "Copied"
+    const copyButton = $(this);
+    copyButton.text("Copied");
+
+    // Change the button class to "btn btn-success"
+    copyButton.removeClass("btn-primary").addClass("btn-success");
+
+    // Apply CSS changes (add classes)
+    copyButton.addClass("copied");
+    textarea.addClass("shrunk");
+
+    // Set a timeout to revert button text and styles back
+    setTimeout(() => {
+      copyButton.text("Copy"); // Revert the text back
+      copyButton.removeClass("btn-success").addClass("btn-primary"); // Revert the button style to primary
+      copyButton.removeClass("copied"); // Revert the additional copied style if needed
+      textarea.removeClass("shrunk"); // Revert the textarea width
+    }, 3000); // Change the text back and revert styles after 3 seconds
   });
 });

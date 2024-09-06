@@ -70,10 +70,11 @@ textarea {
   --tw-border-opacity: 1;
 }
 
-#videoContainer textarea {
+.url-textarea {
   height: 35px;
   resize: none;
-  width: 90%;
+  width: 74%;
+  user-select: text; /* Allow text selection */
 }
 
 #videoContainer > .form_wrapper {
@@ -85,6 +86,28 @@ textarea {
   position: absolute;
   top: 19px;
   right: 25px;
+}
+/* .copy-btn {
+  position: absolute;
+  top: 19px;
+  right: 64px;
+} */
+
+.copy-btn {
+  position: absolute; /* For right positioning */
+  top: 19px;
+  right: 64px;
+  transition: all 0.3s ease; /* Smooth transition for styling */
+}
+
+/* New class for the modified button */
+.copy-btn.copied {
+  right: 65px;
+}
+
+/* New class for the modified textarea */
+.url-textarea.shrunk {
+  width: 70% !important;
 }
 
 .fade-out {
