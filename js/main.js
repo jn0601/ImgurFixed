@@ -169,6 +169,11 @@ $(document).ready(function () {
                 var srcUrl = videoUrl;
               }
 
+              // Split the URL to get the code correctly
+              var parts = url.split("/");
+              var lastPart = parts.pop();
+              var newCode = lastPart.split(".")[0]; // Extract code before '.'
+
               var mediaElement;
               if (isVideo) {
                 mediaElement = $("<video>", {
@@ -176,7 +181,7 @@ $(document).ready(function () {
                   controls: true,
                   loop: true,
                   muted: true,
-                  "data-id": code,
+                  "data-id": newCode,
                   width: "100%",
                   height: "auto",
                   src: srcUrl, // Use .mp4 video URL
@@ -196,7 +201,7 @@ $(document).ready(function () {
                     controls: true,
                     loop: true,
                     muted: true,
-                    "data-id": code,
+                    "data-id": newCode,
                     width: "100%",
                     height: "auto",
                     src: videoUrl, // Use .mp4 video URL
@@ -208,7 +213,7 @@ $(document).ready(function () {
                 } else {
                   mediaElement = $("<img>", {
                     src: imgURL,
-                    alt: code,
+                    alt: newCode,
                     width: "100%",
                     height: "auto",
                   });
