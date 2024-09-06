@@ -120,18 +120,7 @@ $(document).ready(function () {
         const errorUrls = response.errorUrls;
 
         if (errorUrls.length > 0) {
-          // $("#error_result").val(errorUrls.join("\n")); // Join array into a string
-          $("#result").val(
-            errorUrls
-              .map((url) => {
-                // Extract the code before the '.' after replacing the domain
-                var code = url
-                  .replace(/^https:\/\/i.imgur.com\//, "")
-                  .split(".")[0];
-                return "https://imgur.com/" + code; // Return the formatted URL
-              })
-              .join("\n")
-          ); // Replace base URL in the result
+          $("#error_result").val(errorUrls.join("\n")); // Join array into a string
           $("#errorWrapper").show(); // Show the result section
           toastr.error("Some URLs returned errors.");
         }
