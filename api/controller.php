@@ -71,7 +71,14 @@ function checkUrlStatus($url)
 function transformImgurUrls($inputUrls)
 {
     // Split input by new lines and process each URL
-    $urls = explode("\n", $inputUrls);
+    // $urls = explode("\n", $inputUrls);
+
+    // Split input by any whitespace (spaces, tabs, or line breaks) and process each URL
+    // preg_split() with a regular expression ('/\s+/'): This splits the input string by any sequence of whitespace characters, including spaces, tabs, and newlines.
+    // PREG_SPLIT_NO_EMPTY flag: Ensures that empty elements are not included in the resulting array 
+    // (i.e., it removes empty elements if there are extra spaces or line breaks).
+    // The -1 ensures that the entire input string is split by whitespace, without limiting the number of splits.
+    $urls = preg_split('/\s+/', $inputUrls, -1, PREG_SPLIT_NO_EMPTY);
     $transformedUrls = array();
     $errorUrls = array();
 
