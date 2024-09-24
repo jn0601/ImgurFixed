@@ -90,7 +90,7 @@
       </div>
     </div>
   </div>
-  <button id="scrollToTopBtn" style="display: none;">Back To Top</button>
+  <button id="scrollToTopBtn" style="display: none;"><i class="fa-solid fa-arrow-up"></i></button>
 
   <!-- Modal notification -->
   <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
