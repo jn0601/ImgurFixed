@@ -225,6 +225,11 @@ $(document).ready(function () {
                 class: "form_wrapper",
               });
 
+              // Create the inner div to contain the textarea and buttons
+              var innerDiv = $("<div>", {
+                class: "inner_wrapper", // You can name it whatever you like
+              });
+
               // Split the URL to get the code correctly
               var parts = url.split("/");
               var lastPart = parts.pop();
@@ -232,7 +237,7 @@ $(document).ready(function () {
               var imgurUrl = "https://imgur.com/" + code;
               var textareaElement = $("<textarea>", {
                 class: "url-textarea",
-                id: "result",
+                id: "",
                 readonly: true,
                 text: imgurUrl, // Set the text to show the imgur URL
               });
@@ -240,20 +245,35 @@ $(document).ready(function () {
               var copyButton = $("<button>", {
                 type: "button",
                 class: "copy-btn btn btn-primary",
+                title: "Copy link",
                 html: "Copy",
+              });
+
+              var downloadButton = $("<button>", {
+                type: "button",
+                class: "download-btn btn btn-secondary",
+                title: "Download",
+                html: "<i class='fa-solid fa-download'></i>",
               });
 
               // Create the close button
               var closeButton = $("<button>", {
                 type: "button",
                 class: "close-btn btn btn-danger",
+                title: "Close",
                 html: "&times;",
               });
 
-              // Append the element to the wrapper div
-              wrapperDiv.append(textareaElement);
-              wrapperDiv.append(copyButton);
-              wrapperDiv.append(closeButton);
+              // Append the textarea and buttons to the inner div
+              innerDiv.append(textareaElement);
+              innerDiv.append(copyButton);
+              innerDiv.append(downloadButton);
+              innerDiv.append(closeButton);
+
+              // Append the inner div to the wrapper div
+              wrapperDiv.append(innerDiv);
+
+              // Append the media element to the wrapper div (if you have one)
               wrapperDiv.append(mediaElement);
 
               // Append the wrapper div to the video container
@@ -324,7 +344,33 @@ $(document).ready(function () {
     });
   });
 
-  // Copy button functionality
+  // Copy button functionality for result textarea
+  $(document).on("click", ".result-btn", function () {
+    // Get the closest form_wrapper div
+    const formWrapper = $(this).closest(".form_wrapper");
+    // Find the textarea within this form_wrapper
+    const textarea = formWrapper.find("#result");
+
+    // Copy the value of the textarea
+    textarea.select();
+    textarea[0].setSelectionRange(0, 99999); // For mobile devices
+    document.execCommand("copy");
+
+    // Change button text to "Copied"
+    const copyButton = $(this);
+    copyButton.text("Copied");
+
+    // Change the button class to "btn btn-success"
+    copyButton.removeClass("btn-primary").addClass("btn-success");
+
+    // Set a timeout to revert button text and styles back
+    setTimeout(() => {
+      copyButton.text("Copy"); // Revert the text back
+      copyButton.removeClass("btn-success").addClass("btn-primary"); // Revert the button style to primary
+    }, 3000); // Change the text back and revert styles after 3 seconds
+  });
+
+  // Copy button functionality for individual link
   $(document).on("click", ".copy-btn", function () {
     // Get the closest form_wrapper div
     const formWrapper = $(this).closest(".form_wrapper");
@@ -354,5 +400,41 @@ $(document).ready(function () {
       copyButton.removeClass("copied"); // Revert the additional copied style if needed
       textarea.removeClass("shrunk"); // Revert the textarea width
     }, 3000); // Change the text back and revert styles after 3 seconds
+  });
+
+  // Download button functionality
+  $(document).on("click", ".download-btn", function () {
+    // Get the closest form_wrapper div
+    const formWrapper = $(this).closest(".form_wrapper");
+
+    // Find the video element within this form_wrapper
+    const videoElement = formWrapper.find("video");
+
+    // Check if a video element exists within the form_wrapper
+    if (videoElement.length > 0) {
+      // Get the source URL of the video
+      const videoSrc = videoElement.attr("src");
+
+      // Get the filename from the video source URL
+      const filename = videoSrc.split("/").pop(); // e.g., "ECPM4F6.mp4"
+
+      // Fetch the video file from the URL
+      fetch(videoSrc)
+        .then((response) => response.blob()) // Convert the response to a blob (binary large object)
+        .then((blob) => {
+          // Create an invisible anchor element to trigger the download
+          const link = document.createElement("a");
+          link.href = window.URL.createObjectURL(blob); // Create a temporary URL pointing to the blob
+          link.download = filename; // Set the download filename
+          document.body.appendChild(link); // Append the link to the body
+          link.click(); // Trigger the download
+          document.body.removeChild(link); // Remove the link after downloading
+        })
+        .catch((error) => {
+          console.error("Error downloading the video:", error);
+        });
+    } else {
+      console.log("No video found in the form_wrapper");
+    }
   });
 });

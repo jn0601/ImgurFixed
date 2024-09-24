@@ -16,7 +16,7 @@
   </script>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fix imgur link</title>
+  <title>Imgur URL Optimization</title>
   <link rel="shortcut icon" type="image/x-icon" href="../images/DALL·E-2024-08-13-02.50.37.ico" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="stylesheet" href="../css/style.css">
@@ -53,7 +53,7 @@
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <label class="form-label author">Made by <i> JN0106</i></label>
           <div class="button">
-            <button type="submit" class="btn btn-primary">Execute</button>
+            <button type="submit" title="Execute" class="btn btn-info">Execute</button>
           </div>
         </form>
       </div>
@@ -72,6 +72,9 @@
           <div class="form_wrapper">
             <label class="form-label">Result:</label>
             <textarea id="result" readonly></textarea>
+            <div class="button result-copy">
+              <button type="submit" title="Copy" class="result-btn btn btn-primary">Copy</button>
+            </div>
           </div>
         </div>
         <br>
@@ -89,7 +92,7 @@
   </div>
   <button id="scrollToTopBtn" style="display: none;">Back To Top</button>
 
-  <!-- Modal -->
+  <!-- Modal notification -->
   <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
@@ -115,6 +118,7 @@
     </div>
   </div>
 
+  <script src="https://kit.fontawesome.com/170a63e521.js" crossorigin="anonymous"></script>
   <script src="../js/main.min.js"></script>
 </body>
 
