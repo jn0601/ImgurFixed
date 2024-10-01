@@ -34,7 +34,7 @@
 </head>
 
 <body>
-  <h1>Fix Imgur Link</h1>
+  <h1>Imgur URL Optimization</h1>
   <div class="top_bottom">
     <div class="wrapper">
       <h2>What does this do?</h2>
@@ -85,6 +85,14 @@
         <div class="button-container">
           <button id="columnViewBtn" class="btn btn-secondary">Single Column</button>
           <button id="gridViewBtn" class="btn btn-secondary">Grid View</button>
+          <h4 class="drag-text">Drag and drop: </h4>
+          <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
+            <label class="btn btn-outline-primary" for="btnradio1">Enabled</label>
+
+            <input type="radio" class="btn-check" name="btnradio" id="btnradio2" autocomplete="off" checked>
+            <label class="btn btn-outline-danger" for="btnradio2">Disabled</label>
+          </div>
         </div>
         <div id="videoContainer"></div> <!-- Container for videos -->
       </div>

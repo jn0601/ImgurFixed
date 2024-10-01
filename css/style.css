@@ -203,6 +203,8 @@ label {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); /* Adjust the min width */
   gap: 10px; /* Gap between videos */
+  justify-items: center;
+  align-items: baseline;
 }
 
 #videoContainer.grid-layout video {
@@ -268,6 +270,10 @@ label {
   max-width: 100%;
   max-height: 100%;
   margin: auto;
+}
+
+.drag-text {
+  margin-top: .5rem;
 }
 
 @media (max-width: 500px) {

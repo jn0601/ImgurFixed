@@ -60,17 +60,46 @@ $(document).ready(function () {
 
   var videoContainer = document.getElementById("videoContainer");
 
-  var sortable = Sortable.create(videoContainer, {
-    animation: 150, // Speed of the drag animation
-    handle: ".form_wrapper", // Restrict drag to the form_wrapper elements
-    ghostClass: "sortable-ghost", // Add a class to the ghost element when dragging
-    filter: ".copy-btn, .url-textarea, .close-btn", // Filter out the elements from triggering the drag event
-    preventOnFilter: true, // Prevent the default action when clicking the filtered elements
-    onEnd: function (evt) {
-      console.log("Reordered");
-      // Additional actions after reordering can be added here
-    },
+  // sortable
+  var sortable;
+
+  function initializeSortable() {
+    sortable = Sortable.create(videoContainer, {
+      animation: 150,
+      handle: ".form_wrapper",
+      ghostClass: "sortable-ghost",
+      filter: ".copy-btn, .url-textarea, .close-btn",
+      preventOnFilter: true,
+      onEnd: function (evt) {
+        console.log("Reordered");
+      },
+    });
+  }
+
+  function destroySortable() {
+    if (sortable) {
+      sortable.destroy();
+      console.log("Sortable destroyed");
+    }
+  }
+
+  // Event listeners for the radio buttons
+  document.getElementById('btnradio1').addEventListener('change', function () {
+    if (this.checked) {
+      initializeSortable(); // Enable Sortable
+    }
   });
+
+  document.getElementById('btnradio2').addEventListener('change', function () {
+    if (this.checked) {
+      destroySortable(); // Disable Sortable
+    }
+  });
+
+  // Initialize the Sortable by default (if enabled by the first radio button)
+  if (document.getElementById('btnradio1').checked) {
+    initializeSortable();
+  }
 
   var hasShownPopup = false; // Initialize the flag
 
@@ -407,8 +436,9 @@ $(document).ready(function () {
     // Get the closest form_wrapper div
     const formWrapper = $(this).closest(".form_wrapper");
 
-    // Find the video element within this form_wrapper
+    // Find the video or image element within this form_wrapper
     const videoElement = formWrapper.find("video");
+    const imageElement = formWrapper.find("img");
 
     // Check if a video element exists within the form_wrapper
     if (videoElement.length > 0) {
@@ -433,8 +463,28 @@ $(document).ready(function () {
         .catch((error) => {
           console.error("Error downloading the video:", error);
         });
+    }
+    // If an image element exists, download the image
+    else if (imageElement.length > 0) {
+      const imgSrc = imageElement.attr("src");
+      const filename = imgSrc.split("/").pop(); // e.g., "image.jpg"
+
+      // Fetch and download the image
+      fetch(imgSrc)
+        .then((response) => response.blob())
+        .then((blob) => {
+          const link = document.createElement("a");
+          link.href = window.URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        })
+        .catch((error) => {
+          console.error("Error downloading the image:", error);
+        });
     } else {
-      console.log("No video found in the form_wrapper");
+      console.log("No video or image found in the form_wrapper");
     }
   });
 });
