@@ -49,7 +49,7 @@
         <form id="imgurForm">
           <label class="form-label">Input your Imgur links here:</label>
           <label class="form-label">For example: <i>https://i.imgur.com/FCwNSbY.mp4</i></label>
-          <label class="form-label">Or: <i>https://imgur.com/FCwNSbY</i></label>
+          <label class="form-label">Or album link: <i>https://imgur.com/a/y5g7V0g</i></label>
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <label class="form-label author">Made by <i> JN0106</i></label>
           <div class="button">
