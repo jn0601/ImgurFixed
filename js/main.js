@@ -1,16 +1,23 @@
-$(document).ready(function () {
-  // Get the button
+document.addEventListener("DOMContentLoaded", function () {
+  // Get the button elements
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
+  const dragBtn = document.getElementById("dragBtn");
+  const dragBtnGroup = document.getElementById("dragBtnGroup");
+  const topBtnGroup = document.getElementById("topBtnGroup");
+  const ResultSection = document.getElementById("resultWrapper");
 
-  // Show the button when scrolling down
+  // Hide the drag button group by default
+  dragBtnGroup.style.display = "none";
+
+  // Show the scroll to top button when scrolling down
   window.onscroll = function () {
     if (
       document.body.scrollTop > 100 ||
       document.documentElement.scrollTop > 100
     ) {
-      scrollToTopBtn.style.display = "block";
+      scrollToTopBtn.style.display = "block"; // Show the scroll to top button
     } else {
-      scrollToTopBtn.style.display = "none";
+      scrollToTopBtn.style.display = "none"; // Hide the scroll to top button
     }
   };
 
@@ -18,9 +25,51 @@ $(document).ready(function () {
   scrollToTopBtn.onclick = function () {
     window.scrollTo({
       top: 0,
-      behavior: "smooth", // This enables the smooth scrolling
+      behavior: "smooth",
     });
   };
+
+  // Toggle the visibility of the drag button group when clicking the drag button
+  dragBtn.onclick = function () {
+    const isVisible = dragBtnGroup.style.display === "flex";
+    dragBtnGroup.style.display = isVisible ? "none" : "flex"; // Toggle drag button group
+  };
+
+  // Observer to detect if the top button group is in view
+  let observer = new IntersectionObserver(
+    function (entries) {
+      if (entries[0].isIntersecting) {
+        dragBtn.style.display = "none"; // Hide the drag button when the top button group is in view
+        dragBtnGroup.style.display = "none"; // Hide the drag button group if top button group is in view
+      } else {
+        dragBtn.style.display = "block"; // Show the drag button when top button group is out of view
+      }
+    },
+    { threshold: 0 }
+  );
+
+  // MutationObserver to detect visibility changes of #resultWrapper
+  const mutationObserver = new MutationObserver(function (mutationsList) {
+    mutationsList.forEach(function (mutation) {
+      if (
+        mutation.type === "attributes" &&
+        mutation.attributeName === "style"
+      ) {
+        // Check if resultWrapper is visible
+        if (resultWrapper.style.display !== "none") {
+          observer.observe(topBtnGroup); // Start observing the topBtnGroup when visible
+        } else {
+          observer.unobserve(topBtnGroup); // Stop observing when hidden
+        }
+      }
+    });
+  });
+
+  // Observe changes to #resultWrapper's style attribute
+  mutationObserver.observe(resultWrapper, {
+    attributes: true,
+    attributeFilter: ["style"], // Only observe style changes
+  });
 
   // Layout toggle buttons
   $("#columnViewBtn").on("click", function () {
@@ -63,6 +112,7 @@ $(document).ready(function () {
   // sortable
   var sortable;
 
+  // Initialize Sortable
   function initializeSortable() {
     sortable = Sortable.create(videoContainer, {
       animation: 150,
@@ -76,6 +126,7 @@ $(document).ready(function () {
     });
   }
 
+  // Destroy Sortable
   function destroySortable() {
     if (sortable) {
       sortable.destroy();
@@ -83,22 +134,43 @@ $(document).ready(function () {
     }
   }
 
-  // Event listeners for the radio buttons
-  document.getElementById('btnradio1').addEventListener('change', function () {
+  // Event listeners for the radio buttons in the top button group
+  document.getElementById("btnradio1").addEventListener("change", function () {
     if (this.checked) {
-      initializeSortable(); // Enable Sortable
+      initializeSortable(); // Enable Sortable for top group
+      document.getElementById("dragBtnradio1").checked = true; // Sync bottom group
     }
   });
 
-  document.getElementById('btnradio2').addEventListener('change', function () {
+  document.getElementById("btnradio2").addEventListener("change", function () {
     if (this.checked) {
-      destroySortable(); // Disable Sortable
+      destroySortable(); // Disable Sortable for top group
+      document.getElementById("dragBtnradio2").checked = true; // Sync bottom group
     }
   });
 
-  // Initialize the Sortable by default (if enabled by the first radio button)
-  if (document.getElementById('btnradio1').checked) {
-    initializeSortable();
+  // Event listeners for the radio buttons in the bottom button group
+  document
+    .getElementById("dragBtnradio1")
+    .addEventListener("change", function () {
+      if (this.checked) {
+        initializeSortable(); // Enable Sortable for bottom group
+        document.getElementById("btnradio1").checked = true; // Sync bottom group
+      }
+    });
+
+  document
+    .getElementById("dragBtnradio2")
+    .addEventListener("change", function () {
+      if (this.checked) {
+        destroySortable(); // Disable Sortable for bottom group
+        document.getElementById("btnradio2").checked = true; // Sync bottom group
+      }
+    });
+
+  // Disable the Sortable by default (if enabled by the second radio button)
+  if (document.getElementById("dragBtnradio2").checked) {
+    destroySortable();
   }
 
   var hasShownPopup = false; // Initialize the flag
@@ -319,8 +391,6 @@ $(document).ready(function () {
       },
       error: function (xhr, status, error) {
         console.error("AJAX Error:", error);
-        // $("#result").val("Error occurred while transforming the URLs.");
-        // $("#resultWrapper").show(); // Show the result section
         toastr.error("An error occurred while processing the request.");
       },
     });

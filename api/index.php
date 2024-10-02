@@ -86,7 +86,7 @@
           <button id="columnViewBtn" class="btn btn-secondary">Single Column</button>
           <button id="gridViewBtn" class="btn btn-secondary">Grid View</button>
           <h4 class="drag-text">Drag and drop: </h4>
-          <div class="btn-group" role="group" aria-label="Basic radio toggle button group">
+          <div id="topBtnGroup" class="btn-group" role="group" aria-label="Basic radio toggle button group">
             <input type="radio" class="btn-check" name="btnradio" id="btnradio1" autocomplete="off">
             <label class="btn btn-outline-primary" for="btnradio1">Enabled</label>
 
@@ -98,6 +98,20 @@
       </div>
     </div>
   </div>
+
+  <!-- Drag Button -->
+  <button id="dragBtn" style="display: none;">Drag</button>
+
+  <!-- Button Group (Initially Hidden) -->
+  <div id="dragBtnGroup" class="btn-group" role="group" aria-label="Basic radio toggle button group" style="display: none;">
+    <input type="radio" class="btn-check" name="dragBtnradio" id="dragBtnradio1" autocomplete="off">
+    <label class="btn btn-outline-primary" for="dragBtnradio1">Enabled</label>
+
+    <input type="radio" class="btn-check" name="dragBtnradio" id="dragBtnradio2" autocomplete="off" checked>
+    <label class="btn btn-outline-danger" for="dragBtnradio2">Disabled</label>
+  </div>
+
+
   <button id="scrollToTopBtn" style="display: none;"><i class="fa-solid fa-arrow-up"></i></button>
 
   <!-- Modal notification -->
@@ -127,7 +141,7 @@
   </div>
 
   <script src="https://kit.fontawesome.com/170a63e521.js" crossorigin="anonymous"></script>
-  <script src="../js/main.min.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 
 </html>
