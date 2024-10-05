@@ -52,7 +52,8 @@
           <label class="form-label">Or album link: <i>https://imgur.com/a/y5g7V0g</i></label>
           <textarea id="imgurUrls" name="imgurUrls" required></textarea>
           <label class="form-label author">Made by <i> JN0106</i></label>
-          <div class="button">
+          <div class="button submit-btn">
+            <button title="Refresh page" class="refresh-btn btn btn-danger">Refresh</button>
             <button type="submit" title="Execute" class="btn btn-info">Execute</button>
           </div>
         </form>
@@ -73,7 +74,7 @@
             <label class="form-label">Result:</label>
             <textarea id="result" readonly></textarea>
             <div class="button result-copy">
-              <button type="submit" title="Copy" class="result-btn btn btn-primary">Copy</button>
+              <button title="Copy" class="result-btn btn btn-primary">Copy</button>
             </div>
           </div>
         </div>

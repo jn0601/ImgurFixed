@@ -219,47 +219,44 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Update the browser's URL without reloading the page
     history.pushState(null, "", `?id=${generatedId}`);
-
   });
-  
-  
+
   // Function to fetch the result based on the ID in the URL
   async function fetchResultById(id) {
     // Show toastr notification to inform the user to wait
     toastr.info("Please wait a few seconds to retrieve the links...");
 
     try {
-        const requestUrl = `controller.php?id=${id}`;
+      const requestUrl = `controller.php?id=${id}`;
 
-        const response = await $.ajax({
-            type: "GET",
-            url: requestUrl,
-            dataType: "json",
-        });
+      const response = await $.ajax({
+        type: "GET",
+        url: requestUrl,
+        dataType: "json",
+      });
 
-        // Log the response to inspect its structure
-        console.log("Response from server:", response);
+      // Log the response to inspect its structure
+      console.log("Response from server:", response);
 
-        if (response.error) {
-            toastr.error(response.error);
-            return; // Stop execution if there's an error
-        }
+      if (response.error) {
+        toastr.error(response.error);
+        return; // Stop execution if there's an error
+      }
 
-        // Get the input URLs from the response
-        const inputUrls = response.inputUrls; // Assuming inputUrls are returned
+      // Get the input URLs from the response
+      const inputUrls = response.inputUrls; // Assuming inputUrls are returned
 
-        // Check the type of inputUrls
-        console.log("Value of inputUrls:", inputUrls);
+      // Check the type of inputUrls
+      console.log("Value of inputUrls:", inputUrls);
 
-        // Set the input URLs in the textarea
-        $("#imgurUrls").val(inputUrls); // Directly set the single URL
+      // Set the input URLs in the textarea
+      $("#imgurUrls").val(inputUrls); // Directly set the single URL
 
-        // Trigger the form submission to process the URLs
-        await submitImgurUrls([inputUrls]); // Wrap in an array to match the expected input
-
+      // Trigger the form submission to process the URLs
+      await submitImgurUrls([inputUrls]); // Wrap in an array to match the expected input
     } catch (error) {
-        console.error("Error fetching result by ID:", error);
-        toastr.error("An error occurred while retrieving the links.");
+      console.error("Error fetching result by ID:", error);
+      toastr.error("An error occurred while retrieving the links.");
     }
   }
 
@@ -309,7 +306,7 @@ document.addEventListener("DOMContentLoaded", function () {
           ); // Replace base URL in the result
           $("#resultWrapper").show(); // Show the result section
           toastr.success("Successfully!");
-          
+
           // Clear the video container and append media elements
           $("#videoContainer").empty();
           transformedUrls.forEach(function (url) {
@@ -464,10 +461,25 @@ document.addEventListener("DOMContentLoaded", function () {
   if (id) {
     fetchResultById(id); // Fetch result using the ID from the URL
   }
-  
-  
-  
+
   // ##############################################################
+
+  // Function to refresh the page
+  function refreshPage() {
+    // Get the current URL
+    const currentUrl = new URL(window.location.href);
+    
+    // Remove the 'id' parameter
+    currentUrl.searchParams.delete('id');
+    
+    // Redirect to the new URL without the 'id' parameter
+    window.location.href = currentUrl.toString();
+  }
+
+  // Event listener for the refresh button
+  $(document).on("click", ".refresh-btn", function () {
+    refreshPage();
+  });
 
   // Close button functionality
   $(document).on("click", ".close-btn", function () {
@@ -630,10 +642,6 @@ document.addEventListener("DOMContentLoaded", function () {
       console.log("No video or image found in the form_wrapper");
     }
   });
-
-
-
-  
 
   // Get the button elements
   const scrollToTopBtn = document.getElementById("scrollToTopBtn");
@@ -811,8 +819,6 @@ document.addEventListener("DOMContentLoaded", function () {
   if (document.getElementById("dragBtnradio2").checked) {
     destroySortable();
   }
-
-  
 
   // Full-size image modal functionality
   const modal = document.getElementById("imageModal");

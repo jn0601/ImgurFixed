@@ -298,6 +298,10 @@ label {
   margin-top: .5rem;
 }
 
+.submit-btn {
+  justify-content: space-evenly !important;
+}
+
 @media (max-width: 500px) {
   h4 {
     font-size: 1.1rem;
