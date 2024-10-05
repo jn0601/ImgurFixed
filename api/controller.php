@@ -1,4 +1,11 @@
 <?php
+header('Content-Type: application/json'); // Set content type to JSON
+
+// Check if the session has already been started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start(); // Start the session if it hasn't been started
+}
+
 function fetchImgurAlbumImages($albumId)
 {
     $clientId = '5dc6065411ee2ab'; // Use your actual Imgur Client-ID
@@ -136,8 +143,8 @@ function transformImgurUrls($inputUrls)
         $baseUrl = preg_replace('/\/[^\/]+$/', '', $url); // Remove the last segment
         $adjustedUrl = $baseUrl . '/' . $lastPart;
 
-        // Check if the adjusted URL matches the first pattern
-        if (preg_match($pattern1, $adjustedUrl, $matches)) {
+        // Check if the adjusted URL matches the first pattern or second pattern
+        if (preg_match($pattern1, $adjustedUrl, $matches) || preg_match($pattern2, $adjustedUrl, $matches)) {
             // Check if the transformed URL is valid
             $statusCode = checkUrlStatus($adjustedUrl);
             if ($statusCode == 200) {
@@ -147,36 +154,8 @@ function transformImgurUrls($inputUrls)
                 continue;
             }
         }
-        // Check if the adjusted URL matches the second pattern
-        elseif (preg_match($pattern2, $adjustedUrl, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($adjustedUrl);
-            if ($statusCode == 200) {
-                $transformedUrls[] = "https://imgur.com/" . $matches[1];
-            } else {
-                $errorUrls[] = $url; // Add to error list if 403 or 404
-                continue;
-            }
-        }
-        // Check if the adjusted URL matches the album pattern
+        // Check if the adjusted URL matches the album pattern or gallery pattern
         elseif (preg_match($pattern3, $adjustedUrl, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($adjustedUrl);
-            if ($statusCode == 200) {
-                $albumId = $matches[1];
-                // Fetch album images using Imgur API
-                $albumImages = fetchImgurAlbumImages($albumId);
-                if ($albumImages) {
-                    $transformedUrls = array_merge($transformedUrls, $albumImages);
-                } else {
-                    $errorUrls[] = $url;
-                }
-            } else {
-                $errorUrls[] = $url;
-            }
-        }
-        // Check if the adjusted URL matches the gallery pattern
-        elseif (preg_match($pattern4, $adjustedUrl, $matches)) {
             // Check if the transformed URL is valid
             $statusCode = checkUrlStatus($adjustedUrl);
             if ($statusCode == 200) {
@@ -206,8 +185,38 @@ function transformImgurUrls($inputUrls)
 }
 
 // Handle AJAX request
-if (isset($_POST['imgurUrls'])) {
-    $inputUrls = $_POST['imgurUrls'];
+// Handle requests based on the type
+if (isset($_GET['imgurUrls']) && isset($_GET['id'])) {
+    // AJAX request to transform URLs
+    $inputUrls = $_GET['imgurUrls'];
     $result = transformImgurUrls($inputUrls);
-    echo json_encode($result);
+
+    // Store the original input URLs and the transformed result in session
+    $_SESSION['urls'][$_GET['id']] = [
+        'inputUrls' => $inputUrls,
+        'result' => $result // Save the result using the ID as the key
+    ];
+
+    echo json_encode($result); // Send the result back
+} elseif (isset($_GET['id'])) {
+    // Request to retrieve the result based on the ID
+    $id = $_GET['id'];
+
+    if (isset($_SESSION['urls'][$id])) {
+        // Retrieve the original input URLs
+        $inputUrls = $_SESSION['urls'][$id]['inputUrls'];
+        // Transform the URLs again to ensure they are up-to-date
+        $result = transformImgurUrls($inputUrls);
+        // Return the transformed result
+        echo json_encode([
+            'inputUrls' => $inputUrls,
+            'transformedUrls' => $result
+        ]);
+    } else {
+        // Handle case where ID does not exist
+        echo json_encode(['error' => 'No results found for the provided ID']);
+    }
+} else {
+    // Handle missing parameter case
+    echo json_encode(['error' => 'Missing imgurUrls or ID parameter']);
 }
