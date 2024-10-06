@@ -142,7 +142,7 @@
   </div>
 
   <script src="https://kit.fontawesome.com/170a63e521.js" crossorigin="anonymous"></script>
-  <script src="../js/main.min.js"></script>
+  <script src="../js/main.js"></script>
 </body>
 
 </html>
