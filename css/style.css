@@ -179,7 +179,7 @@ label {
   position: fixed;
   bottom: 20px;
   left: 20px;
-  padding: 8px 10px;
+  padding: 10px 15px;
   background-color: #28a745;
   color: white;
   border: none;
@@ -192,7 +192,7 @@ label {
 #dragBtnGroup {
   position: fixed;
   bottom: 20px;
-  left: 78px; /* Positioned to the right of the drag button */
+  left: 90px; /* Positioned to the right of the drag button */
   z-index: 1000;
 }
 
