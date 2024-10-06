@@ -185,38 +185,48 @@ function transformImgurUrls($inputUrls)
 }
 
 // Handle AJAX request
-// Handle requests based on the type
-if (isset($_GET['imgurUrls']) && isset($_GET['id'])) {
-    // AJAX request to transform URLs
-    $inputUrls = $_GET['imgurUrls'];
+// Handle AJAX request
+if (isset($_POST['imgurUrls'])) {
+    $inputUrls = $_POST['imgurUrls'];
     $result = transformImgurUrls($inputUrls);
-
-    // Store the original input URLs and the transformed result in session
-    $_SESSION['urls'][$_GET['id']] = [
-        'inputUrls' => $inputUrls,
-        'result' => $result // Save the result using the ID as the key
-    ];
-
-    echo json_encode($result); // Send the result back
-} elseif (isset($_GET['id'])) {
-    // Request to retrieve the result based on the ID
-    $id = $_GET['id'];
-
-    if (isset($_SESSION['urls'][$id])) {
-        // Retrieve the original input URLs
-        $inputUrls = $_SESSION['urls'][$id]['inputUrls'];
-        // Transform the URLs again to ensure they are up-to-date
-        $result = transformImgurUrls($inputUrls);
-        // Return the transformed result
-        echo json_encode([
-            'inputUrls' => $inputUrls,
-            'transformedUrls' => $result
-        ]);
-    } else {
-        // Handle case where ID does not exist
-        echo json_encode(['error' => 'No results found for the provided ID']);
-    }
-} else {
-    // Handle missing parameter case
-    echo json_encode(['error' => 'Missing imgurUrls or ID parameter']);
+    echo json_encode($result);
 }
+
+
+
+
+// Handle requests based on the type
+// if (isset($_GET['imgurUrls']) && isset($_GET['id'])) {
+//     // AJAX request to transform URLs
+//     $inputUrls = $_GET['imgurUrls'];
+//     $result = transformImgurUrls($inputUrls);
+
+//     // Store the original input URLs and the transformed result in session
+//     $_SESSION['urls'][$_GET['id']] = [
+//         'inputUrls' => $inputUrls,
+//         'result' => $result // Save the result using the ID as the key
+//     ];
+
+//     echo json_encode($result); // Send the result back
+// } elseif (isset($_GET['id'])) {
+//     // Request to retrieve the result based on the ID
+//     $id = $_GET['id'];
+
+//     if (isset($_SESSION['urls'][$id])) {
+//         // Retrieve the original input URLs
+//         $inputUrls = $_SESSION['urls'][$id]['inputUrls'];
+//         // Transform the URLs again to ensure they are up-to-date
+//         $result = transformImgurUrls($inputUrls);
+//         // Return the transformed result
+//         echo json_encode([
+//             'inputUrls' => $inputUrls,
+//             'transformedUrls' => $result
+//         ]);
+//     } else {
+//         // Handle case where ID does not exist
+//         echo json_encode(['error' => 'No results found for the provided ID']);
+//     }
+// } else {
+//     // Handle missing parameter case
+//     echo json_encode(['error' => 'Missing imgurUrls or ID parameter']);
+// }
