@@ -173,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     destroySortable();
   }
 
-  var hasShownPopup = false; // Initialize the flag
+  // var hasShownPopup = false; // Initialize the flag
 
   // Full-size image modal functionality
   const modal = document.getElementById("imageModal");
@@ -383,10 +383,10 @@ document.addEventListener("DOMContentLoaded", function () {
           });
 
           // Show the popup only if it hasn't been shown yet
-          if (!hasShownPopup) {
-            $("#infoModal").modal("show");
-            hasShownPopup = true; // Set the flag to true after showing the popup
-          }
+          // if (!hasShownPopup) {
+          //   $("#infoModal").modal("show");
+          //   hasShownPopup = true; // Set the flag to true after showing the popup
+          // }
         }
       },
       error: function (xhr, status, error) {
