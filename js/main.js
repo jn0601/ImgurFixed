@@ -114,6 +114,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Initialize Sortable
   function initializeSortable() {
+    // Prevent initialization on small screens
+    if (window.innerWidth <= 500) {
+        console.log("Screen width <= 500px, preventing Sortable initialization.");
+        // Ensure radio buttons reflect disabled state
+        if (document.getElementById("btnradio1").checked) {
+            document.getElementById("btnradio2").checked = true;
+            document.getElementById("dragBtnradio2").checked = true;
+        }
+        destroySortable(); // Make sure it's destroyed
+        return;
+    }
+    
+    // Destroy existing instance if somehow called again
+    if (sortable) {
+        destroySortable();
+    }
+    
+    console.log("Initializing Sortable");
     sortable = Sortable.create(videoContainer, {
       animation: 150,
       handle: ".form_wrapper",
@@ -130,6 +148,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function destroySortable() {
     if (sortable) {
       sortable.destroy();
+      sortable = null; // Clear the variable
       console.log("Sortable destroyed");
     }
   }
@@ -137,7 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
   // Event listeners for the radio buttons in the top button group
   document.getElementById("btnradio1").addEventListener("change", function () {
     if (this.checked) {
-      initializeSortable(); // Enable Sortable for top group
+      initializeSortable(); // Initialize if enabled
       document.getElementById("dragBtnradio1").checked = true; // Sync bottom group
     }
   });
@@ -154,7 +173,7 @@ document.addEventListener("DOMContentLoaded", function () {
     .getElementById("dragBtnradio1")
     .addEventListener("change", function () {
       if (this.checked) {
-        initializeSortable(); // Enable Sortable for bottom group
+        initializeSortable(); // Initialize if enabled
         document.getElementById("btnradio1").checked = true; // Sync bottom group
       }
     });
@@ -168,10 +187,44 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     });
 
-  // Disable the Sortable by default (if enabled by the second radio button)
-  if (document.getElementById("dragBtnradio2").checked) {
-    destroySortable();
+  // Initial state check on load
+  if (document.getElementById("dragBtnradio2").checked || window.innerWidth <= 500) {
+      console.log("Initial load: Destroying Sortable (Disabled or small screen).");
+      destroySortable();
+      // Force disable radios if screen is small
+      if (window.innerWidth <= 500) {
+         document.getElementById("btnradio2").checked = true;
+         document.getElementById("dragBtnradio2").checked = true;
+      }
+  } else {
+       console.log("Initial load: Initializing Sortable (Enabled and large screen).");
+      initializeSortable(); // Initialize if enabled by default on large screen
   }
+  
+  // Add window resize listener
+  let resizeTimeout;
+  window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+          console.log("Resize event detected. Width:", window.innerWidth);
+          if (window.innerWidth <= 500) {
+              if (sortable) {
+                  console.log("Resized to <= 500px, destroying Sortable.");
+                  destroySortable();
+                  // Force disable radios
+                  document.getElementById("btnradio2").checked = true;
+                  document.getElementById("dragBtnradio2").checked = true;
+              }
+          } else {
+              // Resized to > 500px
+              // Check if Sortable should be enabled based on radio buttons
+              if (!sortable && document.getElementById("btnradio1").checked) {
+                 console.log("Resized to > 500px and Sortable enabled, initializing.");
+                 initializeSortable();
+              }
+          }
+      }, 250); // Debounce resize event
+  });
 
   var hasShownPopup = false; // Initialize the flag
   var progressInterval = null; // Variable to hold the interval timer

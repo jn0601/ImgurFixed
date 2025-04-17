@@ -307,6 +307,13 @@ label {
   h4 {
     font-size: 1.1rem;
   }
+  /* Hide drag and drop UI on small screens */
+  #topBtnGroup,
+  .drag-text,
+  #dragBtn,
+  #dragBtnGroup {
+    display: none !important; /* Use important to override potential JS style changes */
+  }
 }
 
 @media (max-width: 429px) {

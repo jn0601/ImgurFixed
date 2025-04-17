@@ -43,6 +43,8 @@
 - Updated initial view mode heuristic to consider screen width (default to Grid View for images only if screen width >= 1024px).
 - Prevent zooming out smaller than the initial fitted size in the image modal.
 - Image modal zoom now centers on the image middle if the cursor is outside the image bounds during scroll; otherwise, centers on the cursor.
+- Hide drag-and-drop related UI elements (radio buttons, text label, floating button) on screens with width <= 500px using CSS.
+- Disabled drag-and-drop sorting functionality (Sortable.js) on screens with width <= 500px. Feature is re-enabled/disabled dynamically on window resize.
 
 ### Removed
 - Removed console logging statements previously added for debugging video autoplay.
