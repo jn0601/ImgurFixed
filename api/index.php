@@ -87,7 +87,7 @@
         </div>
         <br>
         <div class="button">
-          <button id="downloadBtn" class="btn btn-success">Download All Videos</button>
+          <button id="downloadBtn" class="btn btn-success">Download All Videos/Images</button>
         </div>
         <br>
         <div class="button-container">
