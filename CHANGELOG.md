@@ -15,6 +15,7 @@
 - Added double-click zoom functionality to the image modal.
 - Implemented conditional video autoplay on desktop (screen width >= 1920px): Videos now only load and attempt to autoplay when they scroll into the viewport, using IntersectionObserver. Videos are paused when scrolled out of view.
 - Implemented client-side caching using `localStorage` to store results for submitted URL sets for 1 hour, reducing redundant processing.
+- Added panning (drag-to-move) functionality to zoomed images in the modal.
 
 ### Fixed
 - Added more detailed console logging to the IntersectionObserver callback for video autoplay to help diagnose issues.

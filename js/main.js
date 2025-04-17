@@ -240,18 +240,25 @@ document.addEventListener("DOMContentLoaded", function () {
   const maxScale = 5;
   let dynamicMinScale = 0.1; // Initial small default min scale
 
+  // State variables for panning
+  let isPanning = false;
+  let startX, startY, currentTranslateX = 0, currentTranslateY = 0;
+
   // Function to reset image transformations
   function resetImageTransform() {
       currentScale = 1;
       dynamicMinScale = 0.1; // Reset min scale too
-      modalImg.style.transform = 'scale(1)';
+      currentTranslateX = 0; // Reset translation
+      currentTranslateY = 0; // Reset translation
+      modalImg.style.transform = 'scale(1) translate(0px, 0px)'; // Reset transform completely
       modalImg.style.transformOrigin = 'center center';
-      $(modalImg).removeClass('zooming');
+      $(modalImg).removeClass('zooming can-grab grabbing');
+      isPanning = false;
   }
 
   // When an image is clicked, open the modal
   $(document).on("click", "#videoContainer img", function () { 
-    resetImageTransform(); // Reset zoom/pan when opening
+    resetImageTransform(); // Reset zoom/pan/translation when opening
     modal.style.display = "block";
     modalImg.src = this.src;
     
@@ -278,6 +285,10 @@ document.addEventListener("DOMContentLoaded", function () {
           modalImg.style.transform = `scale(${currentScale})`; // Apply immediately if needed
       }
 
+      // Add can-grab class conditionally after scale is known
+      if (currentScale > dynamicMinScale) {
+          $(modalImg).addClass('can-grab');
+      }
       modalImg.onload = null; // Remove listener after execution
     };
     // Handle cases where image might already be cached and onload doesn't fire reliably
@@ -329,8 +340,7 @@ document.addEventListener("DOMContentLoaded", function () {
       }
   });
 
-  // --- Move Wheel Listener to Modal --- 
-  // Zooming logic - attached to the modal background now
+  // Zooming logic (Wheel event on modal)
   modal.addEventListener('wheel', function(event) {
       event.preventDefault(); // Prevent page scrolling when modal is open
 
@@ -364,9 +374,19 @@ document.addEventListener("DOMContentLoaded", function () {
           }
 
           // Apply transform origin and scale to the image
+          // Also reset translation when zooming
+          currentTranslateX = 0;
+          currentTranslateY = 0;
           modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
-          modalImg.style.transform = `scale(${newScale})`;
+          modalImg.style.transform = `scale(${newScale}) translate(0px, 0px)`; 
           currentScale = newScale;
+          
+          // Update grab cursor state based on new scale
+          if (currentScale > dynamicMinScale) {
+              $(modalImg).addClass('can-grab');
+          } else {
+              $(modalImg).removeClass('can-grab');
+          }
       }
       
       // Add/remove class for cursor style (optional) - Applied to image
@@ -376,12 +396,10 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Reset zooming class on mouse up (optional) - Still attached to image
-  modalImg.addEventListener('mouseup', () => {
-      $(modalImg).removeClass('zooming');
-  });
-  // REMOVED wheel listener previously attached to modalImg
-  // modalImg.addEventListener('mouseleave', ...)
-
+  // modalImg.addEventListener('mouseup', () => { // This might conflict with panning mouseup
+  //    $(modalImg).removeClass('zooming'); 
+  // });
+  
   // Double-click zoom logic
   modalImg.addEventListener('dblclick', function(event) {
       const rect = modalImg.getBoundingClientRect();
@@ -408,16 +426,73 @@ document.addEventListener("DOMContentLoaded", function () {
       const originXPercent = (offsetX / rect.width) * 100;
       const originYPercent = (offsetY / rect.height) * 100;
 
+      // Reset translation on double-click zoom
+      currentTranslateX = 0;
+      currentTranslateY = 0;
+
       // Apply transform origin and scale
       modalImg.style.transition = 'transform 0.2s ease-out'; // Add transition for dblclick
       modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
-      modalImg.style.transform = `scale(${newScale})`;
+      modalImg.style.transform = `scale(${newScale}) translate(0px, 0px)`;
       currentScale = newScale;
+      
+      // Update grab cursor state
+      if (currentScale > dynamicMinScale) {
+          $(modalImg).addClass('can-grab');
+      } else {
+          $(modalImg).removeClass('can-grab');
+      }
 
       // Remove transition after it completes to prevent affecting wheel zoom
       setTimeout(() => {
           modalImg.style.transition = 'transform 0.1s ease-out'; // Revert to wheel zoom transition
       }, 200);
+  });
+
+  // Panning Logic
+  modalImg.addEventListener('mousedown', (e) => {
+      // Only pan if zoomed in (scale is larger than the fitted scale)
+      if (currentScale > dynamicMinScale) {
+          e.preventDefault(); // Prevent default image dragging
+          isPanning = true;
+          startX = e.clientX - currentTranslateX; // Store initial offset correctly
+          startY = e.clientY - currentTranslateY;
+          $(modalImg).removeClass('can-grab').addClass('grabbing');
+      }
+  });
+
+  // Use document listeners for mousemove/mouseup to capture events outside the image
+  document.addEventListener('mousemove', (e) => {
+      if (!isPanning) return;
+      
+      // No need to prevent default here unless it causes issues
+      currentTranslateX = e.clientX - startX;
+      currentTranslateY = e.clientY - startY;
+      
+      // Apply the translation along with the current scale
+      modalImg.style.transform = `scale(${currentScale}) translate(${currentTranslateX}px, ${currentTranslateY}px)`;
+  });
+
+  document.addEventListener('mouseup', (e) => {
+      if (isPanning) {
+          isPanning = false;
+          $(modalImg).removeClass('grabbing');
+          // Re-add can-grab if still zoomed
+          if (currentScale > dynamicMinScale) {
+              $(modalImg).addClass('can-grab');
+          }
+      }
+  });
+  
+  // Optional: Stop panning if mouse leaves the window entirely
+  document.addEventListener('mouseleave', (e) => {
+       if (isPanning) {
+          isPanning = false;
+          $(modalImg).removeClass('grabbing');
+          if (currentScale > dynamicMinScale) {
+              $(modalImg).addClass('can-grab');
+          }
+      }
   });
 
   // Result
