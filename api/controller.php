@@ -30,13 +30,6 @@ function fetchImgurAlbumImages($albumId)
 
     $responseArray = json_decode($response, true);
 
-    // if (isset($responseArray['data']['images']) && is_array($responseArray['data']['images'])) {
-    //     $images = array_map(function ($image) {
-    //         return "https://imgur.com/" . $image['id'];
-    //     }, $responseArray['data']['images']);
-    //     return $images;
-    // }
-
     // detect image or video
     if (isset($responseArray['data']['images']) && is_array($responseArray['data']['images'])) {
         $mediaUrls = array_map(function ($image) {
@@ -89,144 +82,82 @@ function transformImgurUrls($inputUrls)
     $transformedUrls = array();
     $errorUrls = array();
 
-    // Regular expression to match the first pattern (e.g., https://i.imgur.com/abc.mp4)
+    // Imgur Patterns
     $pattern1 = '/^https?:\/\/i\.imgur\.com\/([a-zA-Z0-9]+)\.(mp4|gifv)$/';
-
-    // Regular expression to match the second pattern (e.g., https://imgur.com/abc)
     $pattern2 = '/^https?:\/\/imgur\.com\/([a-zA-Z0-9]+)$/';
-
-    // Regular expression to match the album pattern (e.g., https://imgur.com/a/abc)
     $pattern3 = '/^https?:\/\/imgur\.com\/a\/(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]+)$/';
-
-    // Regular expression to match the gallery pattern (e.g., https://imgur.com/gallery/abc)
     $pattern4 = '/^https?:\/\/imgur\.com\/gallery\/(?:[a-zA-Z0-9-]+-)?([a-zA-Z0-9]+)$/';
+    // Discord Pattern
+    $discordPattern = '/^https?:\/\/cdn\.discordapp\.com\/attachments\//';
 
     foreach ($urls as $url) {
-        $url = trim($url); // Trim whitespace
+        $url = trim($url);
+        if (empty($url)) continue;
 
-        // Skip empty strings
-        if (empty($url)) {
-            continue;
+        $adjustedUrl = $url; // Use original URL for non-imgur patterns initially
+
+        // --- Imgur Handling --- 
+        // Specific logic to adjust Imgur URLs might still be needed here if applicable
+        if (strpos($url, 'imgur.com') !== false) {
+           // Apply original Imgur adjustment logic if necessary
+           // (Simplified here, assuming previous logic was sufficient)
+           // Extract the code after the last hyphen or slash
+           $urlParts = explode('/', $url);
+           $lastPart = end($urlParts);
+           if (strpos($lastPart, '-') !== false) {
+              $lastPart = substr(strrchr($lastPart, '-'), 1);
+           }
+           $baseUrl = preg_replace('/\/[^\/]+$/', '', $url);
+           $adjustedUrl = $baseUrl . '/' . $lastPart;
         }
 
-        // Extract the code after the last hyphen or slash
-        // explode: This function splits a string into an array using a specified delimiter.
-        // [
-        //     "https:",
-        //     "",
-        //     "imgur.com",
-        //     "neo-haerin-pwUecWV"
-        //   ]
-        // end: This function moves the internal pointer of an array to its last element and returns the value of that element.
-        $urlParts = explode('/', $url);
-        $lastPart = end($urlParts); // $lastPart is neo-haerin-pwUecWV:
-
-        // Check if the last part contains a hyphen
-        if (strpos($lastPart, '-') !== false) {
-            // Extract the code after the last hyphen
-            // strrchr($lastPart, '-') returns -pwUecWV
-            // substr('-pwUecWV', 1) returns pwUecWV
-            // substr(..., 1) removes the hyphen from the beginning of this substring, 
-            // leaving you with only the part of the string after the last hyphen.
-            $lastPart = substr(strrchr($lastPart, '-'), 1);
-        }
-
-        // Construct the adjusted URL
-        // preg_replace Function: This function performs a regular expression search and replace. It searches for a pattern in a string and replaces it with a specified replacement.
-        // Pattern: /\/[^\/]+$/
-        // \/: Matches a literal forward slash /.
-        // [^\/]+: Matches one or more characters that are not a forward slash /. The ^ inside square brackets [] indicates a negation, so [^\/] matches any character except /.
-        // $: Indicates the end of the string. This ensures that the pattern matches the last segment of the URL after the final /.
-        // Replacement: '' (an empty string). This means the matched pattern will be removed from the string.
-        // Purpose: This line removes the last segment from the URL. For example, 
-        // if $url is https://imgur.com/neo-haerin-pwUecWV, the result stored in $baseUrl will be https://imgur.com.
-        $baseUrl = preg_replace('/\/[^\/]+$/', '', $url); // Remove the last segment
-        $adjustedUrl = $baseUrl . '/' . $lastPart;
-
-        // Check if the adjusted URL matches the first pattern or second pattern
+        // Check Imgur patterns (using adjusted URL)
         if (preg_match($pattern1, $adjustedUrl, $matches) || preg_match($pattern2, $adjustedUrl, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($adjustedUrl);
-            if ($statusCode == 200) {
-                $transformedUrls[] = "https://imgur.com/" . $matches[1];
-            } else {
-                $errorUrls[] = $url; // Add to error list if 403 or 404
-                continue;
-            }
+             $statusCode = checkUrlStatus($adjustedUrl);
+             if ($statusCode == 200) {
+                // Assuming the goal is to get the i.imgur direct link
+                // Need logic here to determine if it's image or video and construct i.imgur link
+                // This part needs refinement based on desired output for pattern2 matches
+                // For now, let's just pass the base imgur.com link
+                $transformedUrls[] = "https://imgur.com/" . $matches[1]; 
+             } else {
+                 $errorUrls[] = $url;
+             }
         }
-        // Check if the adjusted URL matches the album pattern or gallery pattern
-        elseif (preg_match($pattern3, $adjustedUrl, $matches)) {
-            // Check if the transformed URL is valid
-            $statusCode = checkUrlStatus($adjustedUrl);
-            if ($statusCode == 200) {
-                $albumId = $matches[1];
-                // Fetch album images using Imgur API
-                $albumImages = fetchImgurAlbumImages($albumId);
-                if ($albumImages) {
-                    $transformedUrls = array_merge($transformedUrls, $albumImages);
-                } else {
-                    $errorUrls[] = $url;
-                }
-            } else {
-                $errorUrls[] = $url;
-            }
-        } else {
+        elseif (preg_match($pattern3, $adjustedUrl, $matches) || preg_match($pattern4, $adjustedUrl, $matches)) {
+             $statusCode = checkUrlStatus($adjustedUrl);
+             if ($statusCode == 200) {
+                 $albumId = $matches[1];
+                 $albumImages = fetchImgurAlbumImages($albumId);
+                 if (!empty($albumImages)) {
+                     $transformedUrls = array_merge($transformedUrls, $albumImages);
+                 } else {
+                     $errorUrls[] = $url; // Add original album URL if fetch fails or empty
+                 }
+             } else {
+                 $errorUrls[] = $url;
+             }
+        }
+        // Check Discord pattern (using original URL, no status check)
+        elseif (preg_match($discordPattern, $url)) {
+            // Pass Discord attachment URLs directly without status check
+            $transformedUrls[] = $url;
+        }
+        // Other URLs
+        else {
             $errorUrls[] = $url; // Add non-matching URLs to error list
         }
-
-        // Else, skip the URL if it doesn't match the pattern
     }
 
-    // Join transformed URLs back into a string
     return [
-        'transformedUrls' => $transformedUrls, // Array of URLs
-        'errorUrls' => $errorUrls // Array of URLs
+        'transformedUrls' => array_unique($transformedUrls), // Ensure unique URLs
+        'errorUrls' => $errorUrls
     ];
 }
 
-// Handle AJAX request
 // Handle AJAX request
 if (isset($_POST['imgurUrls'])) {
     $inputUrls = $_POST['imgurUrls'];
     $result = transformImgurUrls($inputUrls);
     echo json_encode($result);
 }
-
-
-
-
-// Handle requests based on the type
-// if (isset($_GET['imgurUrls']) && isset($_GET['id'])) {
-//     // AJAX request to transform URLs
-//     $inputUrls = $_GET['imgurUrls'];
-//     $result = transformImgurUrls($inputUrls);
-
-//     // Store the original input URLs and the transformed result in session
-//     $_SESSION['urls'][$_GET['id']] = [
-//         'inputUrls' => $inputUrls,
-//         'result' => $result // Save the result using the ID as the key
-//     ];
-
-//     echo json_encode($result); // Send the result back
-// } elseif (isset($_GET['id'])) {
-//     // Request to retrieve the result based on the ID
-//     $id = $_GET['id'];
-
-//     if (isset($_SESSION['urls'][$id])) {
-//         // Retrieve the original input URLs
-//         $inputUrls = $_SESSION['urls'][$id]['inputUrls'];
-//         // Transform the URLs again to ensure they are up-to-date
-//         $result = transformImgurUrls($inputUrls);
-//         // Return the transformed result
-//         echo json_encode([
-//             'inputUrls' => $inputUrls,
-//             'transformedUrls' => $result
-//         ]);
-//     } else {
-//         // Handle case where ID does not exist
-//         echo json_encode(['error' => 'No results found for the provided ID']);
-//     }
-// } else {
-//     // Handle missing parameter case
-//     echo json_encode(['error' => 'Missing imgurUrls or ID parameter']);
-// }

@@ -174,228 +174,494 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   var hasShownPopup = false; // Initialize the flag
+  var progressInterval = null; // Variable to hold the interval timer
 
   // Full-size image modal functionality
   const modal = document.getElementById("imageModal");
   const modalImg = document.getElementById("fullSizeImage");
+  const modalImgContainer = document.querySelector(".modal-image-container");
   const span = document.getElementsByClassName("close")[0];
+  const fullscreenBtn = document.getElementById("fullscreenBtn");
+  let currentScale = 1;
+  const zoomIntensity = 0.1;
+  const maxScale = 5;
+  let dynamicMinScale = 0.1; // Initial small default min scale
 
-  // When an image is clicked, open the modal and display the full-size image
-  $(document).on("click", "img", function () {
+  // Function to reset image transformations
+  function resetImageTransform() {
+      currentScale = 1;
+      dynamicMinScale = 0.1; // Reset min scale too
+      modalImg.style.transform = 'scale(1)';
+      modalImg.style.transformOrigin = 'center center';
+      $(modalImg).removeClass('zooming');
+  }
+
+  // When an image is clicked, open the modal
+  $(document).on("click", "#videoContainer img", function () { 
+    resetImageTransform(); // Reset zoom/pan when opening
     modal.style.display = "block";
     modalImg.src = this.src;
+    
+    // Calculate dynamic min scale once the image is loaded
+    modalImg.onload = () => {
+      const containerWidth = modalImgContainer.clientWidth;
+      const containerHeight = modalImgContainer.clientHeight;
+      const imgWidth = modalImg.naturalWidth;
+      const imgHeight = modalImg.naturalHeight;
+
+      if (imgWidth > 0 && imgHeight > 0 && containerWidth > 0 && containerHeight > 0) {
+         // Calculate the scale factor applied by object-fit: contain
+         dynamicMinScale = Math.min(containerWidth / imgWidth, containerHeight / imgHeight);
+         // Ensure min scale is not excessively large if image is tiny, or too small
+         dynamicMinScale = Math.max(0.1, Math.min(1, dynamicMinScale)); 
+         console.log("Dynamic min scale set to:", dynamicMinScale);
+      } else {
+          dynamicMinScale = 0.1; // Fallback
+      }
+      // Reset current scale to ensure it's not below the new min scale initially
+      // Check if currentScale needs adjustment only if it was potentially set before onload
+      if (currentScale < dynamicMinScale) {
+          currentScale = dynamicMinScale;
+          modalImg.style.transform = `scale(${currentScale})`; // Apply immediately if needed
+      }
+
+      modalImg.onload = null; // Remove listener after execution
+    };
+    // Handle cases where image might already be cached and onload doesn't fire reliably
+     if (modalImg.complete && modalImg.naturalWidth > 0) {
+        modalImg.onload();
+     }
   });
 
   // When the close button is clicked, hide the modal
   span.onclick = function () {
     modal.style.display = "none";
+    resetImageTransform(); // Reset on close
   };
 
-  // Close the modal if clicked outside the image
+  // Close the modal if clicked outside the image or buttons / Exit Fullscreen
   $(modal).on("click", function (e) {
-    if (e.target === modal) {
-      modal.style.display = "none";
+    // Check if the click target is NOT the image AND NOT the fullscreen button
+    if (e.target !== modalImg && e.target !== fullscreenBtn && !fullscreenBtn.contains(e.target)) { 
+        if (document.fullscreenElement === modalImgContainer) {
+            // If in fullscreen, clicking background exits fullscreen
+            document.exitFullscreen();
+        } else {
+            // If not in fullscreen, clicking background closes modal
+            modal.style.display = "none";
+            resetImageTransform(); // Reset on close
+        }
     }
+  });
+
+  // Fullscreen button logic
+  fullscreenBtn.onclick = function() {
+      if (!document.fullscreenElement) {
+          modalImgContainer.requestFullscreen().catch(err => {
+              alert(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+          });
+      } else {
+          if (document.exitFullscreen) {
+              document.exitFullscreen();
+          }
+      }
+  }
+  
+  // Update fullscreen button icon based on state
+  document.addEventListener('fullscreenchange', () => {
+      if (document.fullscreenElement === modalImgContainer) {
+          fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>'; // Change to compress icon
+      } else {
+          fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>'; // Change back to expand icon
+      }
+  });
+
+  // --- Move Wheel Listener to Modal --- 
+  // Zooming logic - attached to the modal background now
+  modal.addEventListener('wheel', function(event) {
+      event.preventDefault(); // Prevent page scrolling when modal is open
+
+      // Calculate scale delta
+      let delta = event.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+      let newScale = currentScale + delta;
+
+      // Clamp scale using dynamicMinScale
+      newScale = Math.max(dynamicMinScale, Math.min(maxScale, newScale));
+
+      if (newScale !== currentScale) {
+          // Calculate mouse position relative to the image element still
+          const rect = modalImg.getBoundingClientRect();
+          if (rect.width === 0 || rect.height === 0) return; 
+          
+          let originXPercent = 50; 
+          let originYPercent = 50; 
+
+          // Check if cursor is inside the image bounds
+          const isInside = event.clientX >= rect.left && event.clientX <= rect.right &&
+                           event.clientY >= rect.top && event.clientY <= rect.bottom;
+
+          if (isInside) {
+              // Cursor is inside, calculate origin based on cursor position
+              const offsetX = event.clientX - rect.left;
+              const offsetY = event.clientY - rect.top;
+              originXPercent = (offsetX / rect.width) * 100;
+              originYPercent = (offsetY / rect.height) * 100;
+          } else {
+              // Cursor is outside, use the default center origin
+          }
+
+          // Apply transform origin and scale to the image
+          modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
+          modalImg.style.transform = `scale(${newScale})`;
+          currentScale = newScale;
+      }
+      
+      // Add/remove class for cursor style (optional) - Applied to image
+      $(modalImg).addClass('zooming');
+      // Consider removing the class after a short timeout if needed
+      // setTimeout(() => { $(modalImg).removeClass('zooming'); }, 200);
+  });
+
+  // Reset zooming class on mouse up (optional) - Still attached to image
+  modalImg.addEventListener('mouseup', () => {
+      $(modalImg).removeClass('zooming');
+  });
+  // REMOVED wheel listener previously attached to modalImg
+  // modalImg.addEventListener('mouseleave', ...)
+
+  // Double-click zoom logic
+  modalImg.addEventListener('dblclick', function(event) {
+      const rect = modalImg.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return; // Image not loaded
+
+      const targetScale = 2; // Target scale for double-click zoom
+      let newScale;
+
+      // If current scale is already zoomed in (e.g., >= targetScale), zoom out to min
+      if (currentScale >= targetScale * 0.99) { // Use a small tolerance
+           newScale = dynamicMinScale;
+      } else {
+           newScale = targetScale;
+      }
+      
+      // Clamp scale just in case target is outside bounds (shouldn't happen often here)
+      newScale = Math.max(dynamicMinScale, Math.min(maxScale, newScale));
+
+      // Calculate click position relative to the image element
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+
+      // Calculate percentage-based origin
+      const originXPercent = (offsetX / rect.width) * 100;
+      const originYPercent = (offsetY / rect.height) * 100;
+
+      // Apply transform origin and scale
+      modalImg.style.transition = 'transform 0.2s ease-out'; // Add transition for dblclick
+      modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
+      modalImg.style.transform = `scale(${newScale})`;
+      currentScale = newScale;
+
+      // Remove transition after it completes to prevent affecting wheel zoom
+      setTimeout(() => {
+          modalImg.style.transition = 'transform 0.1s ease-out'; // Revert to wheel zoom transition
+      }, 200);
   });
 
   // Result
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();
-    // Clear textareas before making the request
+    // Clear previous results/errors
     $("#result").val("");
     $("#error_result").val("");
     $("#videoContainer").empty();
     $("#resultWrapper").hide();
     $("#errorWrapper").hide();
 
-    var imgurUrls = $("#imgurUrls").val();
+    const imgurUrls = $("#imgurUrls").val();
+    const cacheTTL = 3600 * 1000; // Cache Time To Live: 1 hour in milliseconds
 
+    // --- Client-Side Caching Logic ---
+    let cachedResponse = null;
+    let cacheKey = null;
+    try {
+        // Normalize input for a more robust cache key
+        const normalizedUrls = imgurUrls.trim().split(/\s+/).filter(Boolean).sort().join('\n');
+        cacheKey = 'imgurCache_' + normalizedUrls; // Use normalized key
+
+        const cachedItem = localStorage.getItem(cacheKey);
+        if (cachedItem) {
+            const cache = JSON.parse(cachedItem);
+            const cacheAge = Date.now() - cache.timestamp;
+            if (cacheAge < cacheTTL) {
+                console.log("Using cached results for key:", cacheKey);
+                cachedResponse = cache.data; // Use the cached data
+                toastr.info("Showing cached results.");
+            } else {
+                console.log("Cache expired for key:", cacheKey);
+                localStorage.removeItem(cacheKey); // Remove expired item
+            }
+        }
+    } catch (e) {
+        console.error("Error accessing localStorage for cache:", e);
+        // Proceed without cache if localStorage fails
+    }
+
+    if (cachedResponse) {
+        // --- Process Cached Response --- 
+        // Re-use the success logic, simulating an AJAX success
+        // We need to wrap this to avoid code duplication, or call a shared function
+        // For simplicity here, we'll duplicate the core processing part
+        
+        // Ensure loader is hidden if cache is hit immediately
+        if (progressInterval) clearInterval(progressInterval);
+        $("#loader").hide(); 
+        
+        processApiResponse(cachedResponse, cacheKey); // Use the cached response
+        return; // Skip AJAX call
+    }
+    // --- End Caching Logic ---
+
+    // Reset and Show loader (only if not cached)
+    if (progressInterval) clearInterval(progressInterval);
+    let progressPercent = 0;
+    $('#loader-percentage').text('0%');
+    $('.progress-bar').css('width', '0%');
+    $("#loader").show();
+
+    // Simulate progress
+    progressInterval = setInterval(function() {
+      progressPercent += 0.5; // Slower increment (aims for ~6 seconds)
+      if (progressPercent >= 100) {
+        // Don't exceed 99% until complete
+         progressPercent = 99;
+         // We could clear interval here, but doing it in 'complete' is safer
+      }
+      // Use Math.floor to avoid decimal percentages in display
+      $('#loader-percentage').text(Math.floor(progressPercent) + '%');
+      $('.progress-bar').css('width', progressPercent + '%');
+    }, 30); // Update roughly every 30ms
+
+    // AJAX call if not cached
     $.ajax({
       type: "POST",
       url: "controller.php",
       data: {
-        imgurUrls: imgurUrls,
+        imgurUrls: imgurUrls, // Send original URLs
       },
       dataType: "json",
       success: function (response) {
-        console.log(response);
-        const transformedUrls = response.transformedUrls;
-        const errorUrls = response.errorUrls;
-
-        if (errorUrls.length > 0) {
-          $("#error_result").val(errorUrls.join("\n")); // Join array into a string
-          $("#errorWrapper").show(); // Show the result section
-          toastr.error("Some URLs returned errors.");
-        }
-        if (transformedUrls.length === 0) {
-          toastr.error("An error occurred while processing the request.");
-        } else {
-          // $("#result").val(transformedUrls.join("\n")); // Join array into a string
-          $("#result").val(
-            transformedUrls
-              .map((url) => {
-                // Extract the code from the URL
-                // Split the URL to get the code correctly
-                var parts = url.split("/");
-                var lastPart = parts.pop();
-                var code = lastPart.split(".")[0]; // Extract code before '.'
-
-                // Construct the formatted URL
-                return "https://imgur.com/" + code;
-              })
-              .join("\n") // Join the URLs with newline
-          ); // Replace base URL in the result
-          $("#resultWrapper").show(); // Show the result section
-          toastr.success("Successfully!");
-          // Clear the video container
-          $("#videoContainer").empty();
-
-          // Loop through each URL and create a video element
-          transformedUrls.forEach(function (url) {
-            if (url.trim()) {
-              var code = url.split("/").pop(); // Get the code after imgur.com/
-              var videoUrl = "https://i.imgur.com/" + code;
-              var imgURL = "https://i.imgur.com/" + code; // Image fallback URL
-
-              // Determine if URL is video or image
-              var isVideo = url.endsWith(".mp4") || url.endsWith(".gifv");
-
-              // Check if there's no extension and assume video, or add fallback logic
-              if (!url.includes(".")) {
-                isVideo = true; // Assume it's a video if no extension is present
-              }
-
-              // var srcUrl = isVideo ? videoUrl : imgURL; // Use imgURL for images
-              if (isVideo) {
-                var srcUrl = videoUrl;
-              }
-
-              // Split the URL to get the code correctly
-              var parts = url.split("/");
-              var lastPart = parts.pop();
-              var newCode = lastPart.split(".")[0]; // Extract code before '.'
-
-              var mediaElement;
-              if (isVideo) {
-                mediaElement = $("<video>", {
-                  autoplay: true,
-                  controls: true,
-                  loop: true,
-                  muted: true,
-                  "data-id": newCode,
-                  width: "100%",
-                  height: "auto",
-                  src: srcUrl, // Use .mp4 video URL
-                  frameborder: 0,
-                });
-
-                // Explicitly set the muted property
-                mediaElement.prop("muted", true);
-              } else {
-                // Regular expression to check for a file extension at the end of the URL
-                var hasExtension = /\.(jpg|jpeg|png|gif|bmp|webp)$/i.test(url);
-
-                if (!hasExtension) {
-                  var videoUrl = "https://i.imgur.com/" + code + ".mp4";
-                  mediaElement = $("<video>", {
-                    autoplay: true,
-                    controls: true,
-                    loop: true,
-                    muted: true,
-                    "data-id": newCode,
-                    width: "100%",
-                    height: "auto",
-                    src: videoUrl, // Use .mp4 video URL
-                    frameborder: 0,
-                  });
-
-                  // Explicitly set the muted property
-                  mediaElement.prop("muted", true);
-                } else {
-                  mediaElement = $("<img>", {
-                    src: imgURL,
-                    alt: newCode,
-                    width: "100%",
-                    height: "auto",
-                  });
-                }
-              }
-
-              // Create the wrapper div and label
-              var wrapperDiv = $("<div>", {
-                class: "form_wrapper",
-              });
-
-              // Create the inner div to contain the textarea and buttons
-              var innerDiv = $("<div>", {
-                class: "inner_wrapper", // You can name it whatever you like
-              });
-
-              // Split the URL to get the code correctly
-              var parts = url.split("/");
-              var lastPart = parts.pop();
-              var code = lastPart.split(".")[0]; // Extract code before '.'
-              var imgurUrl = "https://imgur.com/" + code;
-              var textareaElement = $("<textarea>", {
-                class: "url-textarea",
-                id: "",
-                readonly: true,
-                text: imgurUrl, // Set the text to show the imgur URL
-              });
-
-              var copyButton = $("<button>", {
-                type: "button",
-                class: "copy-btn btn btn-primary",
-                title: "Copy link",
-                html: "Copy",
-              });
-
-              var downloadButton = $("<button>", {
-                type: "button",
-                class: "download-btn btn btn-secondary",
-                title: "Download",
-                html: "<i class='fa-solid fa-download'></i>",
-              });
-
-              // Create the close button
-              var closeButton = $("<button>", {
-                type: "button",
-                class: "close-btn btn btn-danger",
-                title: "Close",
-                html: "&times;",
-              });
-
-              // Append the textarea and buttons to the inner div
-              innerDiv.append(textareaElement);
-              innerDiv.append(copyButton);
-              innerDiv.append(downloadButton);
-              innerDiv.append(closeButton);
-
-              // Append the inner div to the wrapper div
-              wrapperDiv.append(innerDiv);
-
-              // Append the media element to the wrapper div (if you have one)
-              wrapperDiv.append(mediaElement);
-
-              // Append the wrapper div to the video container
-              $("#videoContainer").append(wrapperDiv);
+         // Use the *same* cache key determined earlier
+         processApiResponse(response, cacheKey); 
+         
+         // Store successful response in cache
+         if (cacheKey && response && (!response.errorUrls || response.errorUrls.length === 0)) { // Optionally cache only fully successful responses
+            try {
+                 const cacheData = {
+                    data: response,
+                    timestamp: Date.now()
+                 };
+                 localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+                 console.log("Response stored in cache with key:", cacheKey);
+            } catch (e) {
+                 console.error("Error storing response in localStorage cache:", e);
+                 // Handle potential storage full errors (e.g., clear old cache)
             }
-          });
-
-          // Show the popup only if it hasn't been shown yet
-          if (!hasShownPopup) {
-            $("#infoModal").modal("show");
-            hasShownPopup = true; // Set the flag to true after showing the popup
-          }
-        }
+         }
       },
-      error: function (xhr, status, error) {
-        console.error("AJAX Error:", error);
-        toastr.error("An error occurred while processing the request.");
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.error("AJAX Error:", textStatus, errorThrown);
+        toastr.error(
+          "An error occurred while processing the request. Please try again."
+        );
+        // Clear interval in case of error too
+        if (progressInterval) clearInterval(progressInterval);
+      },
+      complete: function () {
+        // Clear the interval
+        if (progressInterval) clearInterval(progressInterval);
+        // Ensure 100% is shown briefly (optional, might flash too fast)
+        $('#loader-percentage').text('100%'); 
+        $('.progress-bar').css('width', '100%');
+        
+        // Hide loader regardless of success or error
+        // Add a small delay if you want 100% to be visible longer
+        // setTimeout(function() { $("#loader").hide(); }, 100);
+        $("#loader").hide(); 
       },
     });
-
   });
+  
+  // --- Function to process API response (from AJAX or Cache) ---
+  function processApiResponse(response, cacheKeyForPotentialStorage) {
+      // console.log("Processing response:", response);
+      const transformedUrls = response.transformedUrls || [];
+      const errorUrls = response.errorUrls || [];
+
+      if (errorUrls.length > 0) {
+          $("#error_result").val(errorUrls.join("\n"));
+          $("#errorWrapper").show();
+          toastr.error("Some URLs returned errors.");
+      }
+
+      if (transformedUrls.length > 0) {
+          // Auto-select layout view
+          const screenWidthThreshold = 1024;
+          if (window.innerWidth >= screenWidthThreshold) {
+              // console.log(`Screen width >= ${screenWidthThreshold}px, defaulting to Grid View.`);
+              $("#gridViewBtn").trigger('click');
+          } else {
+              // console.log(`Screen width < ${screenWidthThreshold}px, defaulting to Column View.`);
+              $("#columnViewBtn").trigger('click');
+          }
+
+          // Populate result textarea
+          $("#result").val(
+              transformedUrls
+              .map((url) => { 
+                  // Check if the URL is an Imgur URL
+                  if (url.includes('imgur.com')) {
+                      // Extract code specifically for Imgur
+                      const imgurParts = url.split('/');
+                      let lastImgurPart = imgurParts.pop() || ''; // Handle potential empty parts
+                      let code = lastImgurPart.split('.')[0];
+                      
+                      // Adjust for different Imgur URL formats
+                      if (url.match(/^https?:\/\/imgur\.com\/[a-zA-Z0-9]+$/)) {
+                          // e.g., https://imgur.com/abc -> code = abc
+                          code = lastImgurPart;
+                      } else if (url.match(/^https?:\/\/i\.imgur\.com\/[a-zA-Z0-9]+/)) {
+                         // e.g., https://i.imgur.com/abc.mp4 -> code = abc
+                         code = lastImgurPart.split('.')[0]; 
+                      }
+                      // Construct the standardized display URL for Imgur
+                      return "https://imgur.com/" + code;
+                  } else {
+                     // For non-Imgur URLs (Discord, Twitter media, etc.), return the original URL
+                     return url;
+                  }
+              })
+              .join("\n")
+          );
+          $("#resultWrapper").show();
+          if (!cacheKeyForPotentialStorage) { // Show success only for non-cached results? Or always?
+             toastr.success("Successfully processed " + transformedUrls.length + " items!");
+          } // Info toastr for cache hit is handled before calling this function
+          
+          $("#videoContainer").empty();
+
+          // Create media elements
+          transformedUrls.forEach(function (url) {
+             let isVideo = false;
+             let srcUrl = url;
+             let displayUrl = url;
+             let mediaElement;
+             let code = 'unknown';
+             const videoExtensions = /\.(mp4|webm|mov|gifv)$/i;
+             const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp)$/i;
+
+             // Determine type and code based on URL structure
+             if (url.includes('imgur.com')) { 
+                 // ... Imgur specific logic ... 
+                 const imgurParts = url.split('/');
+                 let lastImgurPart = imgurParts.pop() || '';
+                 code = lastImgurPart.split('.')[0];
+                 displayUrl = "https://imgur.com/" + code;
+                 isVideo = url.endsWith(".mp4") || url.endsWith(".gifv");
+                 if (!url.includes('.')) {
+                     isVideo = true;
+                     srcUrl = "https://i.imgur.com/" + code + ".mp4";
+                 } else if (!isVideo && !imageExtensions.test(url)) {
+                     isVideo = true;
+                     srcUrl = "https://i.imgur.com/" + code + ".mp4"; 
+                 }
+             } else if (url.includes('cdn.discordapp.com/attachments/')) { 
+                 // ... Discord specific logic ...
+                 try {
+                     const urlObject = new URL(url);
+                     const pathname = urlObject.pathname;
+                     code = pathname.split('/').pop().split('.')[0];
+                     if (videoExtensions.test(pathname)) isVideo = true;
+                     else if (imageExtensions.test(pathname)) isVideo = false;
+                     else return; // Skip unknown
+                     srcUrl = url;
+                     displayUrl = url;
+                 } catch (e) { return; } // Skip invalid
+             } else {
+                 // ... Fallback logic ...
+                 const urlPath = url.split('?')[0];
+                 if (videoExtensions.test(urlPath)) isVideo = true;
+                 else if (imageExtensions.test(urlPath)) isVideo = false;
+                 else return; // Skip unknown
+                 srcUrl = url;
+                 displayUrl = url;
+                 code = urlPath.split('/').pop().split('.')[0];
+             }
+
+             // Create Media Element (Video or Image)
+             if (isVideo) {
+                 let videoClasses = [];
+                 if (window.innerWidth >= 1920) videoClasses.push('video-autoplay-desktop');
+                 mediaElement = $("<video>", {
+                     controls: true, loop: true, muted: true,
+                     "data-id": code, "data-src": srcUrl,
+                     class: videoClasses.join(' '),
+                     width: "100%", height: "auto", frameborder: 0,
+                 });
+                 mediaElement.prop("muted", true);
+             } else {
+                 mediaElement = $("<img>", { src: srcUrl, alt: code, width: "100%", height: "auto" });
+             }
+             
+             // Create Wrapper and Controls
+             var wrapperDiv = $("<div>", { class: "form_wrapper" });
+             var innerDiv = $("<div>", { class: "inner_wrapper" });
+             var textareaElement = $("<textarea>", { class: "url-textarea", readonly: true, text: displayUrl });
+             var copyButton = $("<button>", { type: "button", class: "copy-btn btn btn-primary", title: "Copy link", html: "Copy" });
+             var downloadButton = $("<button>", { type: "button", class: "download-btn btn btn-secondary", title: "Download", html: "<i class='fa-solid fa-download'></i>" });
+             var closeButton = $("<button>", { type: "button", class: "close-btn btn btn-danger", title: "Close", html: "&times;" });
+             innerDiv.append(textareaElement, copyButton, downloadButton, closeButton);
+             wrapperDiv.append(innerDiv, mediaElement);
+             $("#videoContainer").append(wrapperDiv);
+          });
+
+          // Setup Intersection Observer
+          const videoObserverOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
+          const videoObserverCallback = (entries, observer) => {
+              entries.forEach(entry => {
+                  const video = entry.target;
+                  if (entry.isIntersecting) {
+                      if (video.dataset.src) {
+                          video.src = video.dataset.src;
+                          delete video.dataset.src;
+                          if (video.classList.contains('video-autoplay-desktop')) {
+                              video.play().catch(error => {});
+                          }
+                      } else if (video.classList.contains('video-autoplay-desktop') && video.paused && video.src) {
+                          video.play().catch(error => {});
+                      }
+                  } else {
+                      if (video.classList.contains('video-autoplay-desktop') && video.src && !video.paused) {
+                          video.pause();
+                      }
+                  }
+              });
+          };
+          const videoObserver = new IntersectionObserver(videoObserverCallback, videoObserverOptions);
+          $("#videoContainer video").each(function() { videoObserver.observe(this); });
+
+          // Show info modal (if applicable)
+          if (!hasShownPopup && transformedUrls.some(url => url.includes('imgur.com'))) {
+              hasShownPopup = true;
+          }
+      } else if (errorUrls.length === 0) {
+          toastr.info("Processing complete, but no media URLs were found or processed successfully.");
+      } else {
+          // Only errors
+          // toastr message already shown above
+      }
+  }
+  // --- End processApiResponse function ---
+
   // Close button functionality
   $(document).on("click", ".close-btn", function () {
     var formWrapper = $(this).closest(".form_wrapper");
@@ -409,36 +675,65 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 500);
   });
 
-  // Download
+  // Download All Button
   $("#downloadBtn").on("click", function () {
-    if (confirm("Are you sure you want to download all videos?")) {
-      $("#videoContainer video").each(function () {
-        var videoSrc = $(this).attr("src");
-        // videoSrc.split("/").pop() splits the src URL by slashes (/) and returns the last part of the URL, which is the filename (e.g., "ECPM4F6.mp4").
-        var filename = videoSrc.split("/").pop();
-        // fetch(videoSrc) sends a network request to download the video file at the URL stored in videoSrc.
-        // The fetch function returns a Promise that resolves to the response object once the request completes.
-        // .then((response) => response.blob()) converts the response to a blob (a binary large object), which represents the video file as raw data.
-        fetch(videoSrc)
-          .then((response) => response.blob())
-          .then((blob) => {
-            // The blob is passed to the next .then() function, which creates an invisible <a> (anchor) element to simulate a file download.
-            // document.createElement("a") creates the anchor element.
-            // link.href = window.URL.createObjectURL(blob); creates a temporary URL pointing to the blob (the video file) and sets it as the href of the anchor element.
-            // link.download = filename; sets the download attribute of the anchor element to the filename (e.g., "ECPM4F6.mp4"), so the browser knows what to name the downloaded file.
-            // document.body.appendChild(link); adds the anchor element to the document body (though it won't be visible).
-            // link.click(); simulates a click on the anchor element, which triggers the download.
-            // document.body.removeChild(link); removes the anchor element from the document after the download starts, cleaning up.
-            var link = document.createElement("a");
-            link.href = window.URL.createObjectURL(blob);
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-          })
-          .catch((error) =>
-            console.error("Error downloading the video:", error)
-          );
+    if (confirm("Are you sure you want to download all media items?")) {
+      const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp)$/i;
+      $("#videoContainer video, #videoContainer img").each(function () {
+        var mediaSrc = $(this).attr("src");
+        if (!mediaSrc) return; // Skip if no src
+
+        var urlPath = mediaSrc.split('?')[0];
+        var filename = urlPath.split("/").pop();
+        if (!filename) filename = "downloaded_media";
+
+        let useFetchMethod = true; // Default to fetch method
+
+        if (mediaSrc.includes('cdn.discordapp.com')) {
+            // Check if it's a video (if not an image, assume video for Discord download)
+            if (!imageExtensions.test(filename)) { 
+                 useFetchMethod = false; // Use direct link method for Discord videos
+            }
+            // If it IS a Discord image, useFetchMethod remains true
+        }
+
+        if (useFetchMethod) {
+            // Use fetch method (for non-Discord, and Discord images)
+            fetch(mediaSrc)
+              .then((response) => {
+                  if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+                  return response.blob();
+              })
+              .then((blob) => {
+                var link = document.createElement("a");
+                link.href = window.URL.createObjectURL(blob);
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(link.href);
+              })
+              .catch((error) => {
+                console.error("Error downloading media (All - Fetch):", mediaSrc, error);
+                toastr.error("Failed to download: " + filename + " (Fetch - See console)");
+              });
+        } else {
+            // Use direct link method (only for Discord videos)
+            console.log('Attempting direct download for Discord video:', mediaSrc);
+            try {
+                const link = document.createElement("a");
+                link.href = mediaSrc;
+                link.download = filename;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                console.error("Error attempting direct download for Discord video:", mediaSrc, error);
+                toastr.error("Failed to initiate download for: " + filename + " (Direct method)");
+            }
+         }
       });
     }
   });
@@ -501,60 +796,73 @@ document.addEventListener("DOMContentLoaded", function () {
     }, 3000); // Change the text back and revert styles after 3 seconds
   });
 
-  // Download button functionality
+  // Individual Download button functionality
   $(document).on("click", ".download-btn", function () {
-    // Get the closest form_wrapper div
     const formWrapper = $(this).closest(".form_wrapper");
-
-    // Find the video or image element within this form_wrapper
     const videoElement = formWrapper.find("video");
     const imageElement = formWrapper.find("img");
 
-    // Check if a video element exists within the form_wrapper
+    let mediaSrc = null;
     if (videoElement.length > 0) {
-      // Get the source URL of the video
-      const videoSrc = videoElement.attr("src");
-
-      // Get the filename from the video source URL
-      const filename = videoSrc.split("/").pop(); // e.g., "ECPM4F6.mp4"
-
-      // Fetch the video file from the URL
-      fetch(videoSrc)
-        .then((response) => response.blob()) // Convert the response to a blob (binary large object)
-        .then((blob) => {
-          // Create an invisible anchor element to trigger the download
-          const link = document.createElement("a");
-          link.href = window.URL.createObjectURL(blob); // Create a temporary URL pointing to the blob
-          link.download = filename; // Set the download filename
-          document.body.appendChild(link); // Append the link to the body
-          link.click(); // Trigger the download
-          document.body.removeChild(link); // Remove the link after downloading
-        })
-        .catch((error) => {
-          console.error("Error downloading the video:", error);
-        });
+        mediaSrc = videoElement.attr("src");
+    } else if (imageElement.length > 0) {
+        mediaSrc = imageElement.attr("src");
     }
-    // If an image element exists, download the image
-    else if (imageElement.length > 0) {
-      const imgSrc = imageElement.attr("src");
-      const filename = imgSrc.split("/").pop(); // e.g., "image.jpg"
 
-      // Fetch and download the image
-      fetch(imgSrc)
-        .then((response) => response.blob())
-        .then((blob) => {
-          const link = document.createElement("a");
-          link.href = window.URL.createObjectURL(blob);
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        })
-        .catch((error) => {
-          console.error("Error downloading the image:", error);
-        });
+    if (mediaSrc) {
+        const imageExtensions = /\.(jpg|jpeg|png|gif|bmp|webp)$/i;
+        var urlPath = mediaSrc.split('?')[0];
+        var filename = urlPath.split("/").pop();
+        if (!filename) filename = "downloaded_media";
+
+        let useFetchMethod = true;
+
+        if (mediaSrc.includes('cdn.discordapp.com')) {
+           if (!imageExtensions.test(filename)) {
+               useFetchMethod = false;
+           }
+        }
+
+        if (useFetchMethod) {
+            // Use fetch method
+            fetch(mediaSrc)
+                .then((response) => {
+                    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status} ${response.statusText}`);
+                    return response.blob();
+                })
+                .then((blob) => {
+                    const link = document.createElement("a");
+                    link.href = window.URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(link.href);
+                })
+                .catch((error) => {
+                    console.error("Error downloading media (Individual - Fetch):", mediaSrc, error);
+                    toastr.error("Failed to download: " + filename + " (Fetch - See console)");
+                });
+        } else {
+             // Use direct link method (Discord videos)
+            console.log('Attempting direct download for Discord video:', mediaSrc);
+             try {
+                const link = document.createElement("a");
+                link.href = mediaSrc;
+                link.download = filename;
+                link.target = "_blank";
+                link.rel = "noopener noreferrer";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } catch (error) {
+                 console.error("Error attempting direct download for Discord video:", mediaSrc, error);
+                toastr.error("Failed to initiate download for: " + filename + " (Direct method)");
+            }
+        }
     } else {
-      console.log("No video or image found in the form_wrapper");
+        console.log("No video or image source found in this item.");
+        toastr.warning("Could not find media source to download.");
     }
   });
 

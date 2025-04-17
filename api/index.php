@@ -34,6 +34,12 @@
 </head>
 
 <body>
+  <div id="loader" style="display: none;">
+    <div class="progress-bar-container">
+      <div class="progress-bar"></div>
+    </div>
+    <p>Loading... <span id="loader-percentage">0%</span></p>
+  </div>
   <h1>Imgur URL Optimization</h1>
   <div class="top_bottom">
     <div class="wrapper">
@@ -116,7 +122,7 @@
   <button id="scrollToTopBtn" style="display: none;"><i class="fa-solid fa-arrow-up"></i></button>
 
   <!-- Modal notification -->
-  <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
+  <!-- <div class="modal fade" id="infoModal" tabindex="-1" aria-labelledby="infoModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
@@ -131,13 +137,14 @@
         </div>
       </div>
     </div>
-  </div>
+  </div> -->
 
   <!-- Modal for Full-size Image -->
   <div id="imageModal" class="modal">
     <span class="close">&times;</span>
-    <div class="modal-image">
-      <img class="modal-content " id="fullSizeImage">
+    <button id="fullscreenBtn" class="modal-btn" title="Toggle Fullscreen"><i class="fa-solid fa-expand"></i></button> 
+    <div class="modal-image-container">
+        <img class="modal-content" id="fullSizeImage">
     </div>
   </div>
 
