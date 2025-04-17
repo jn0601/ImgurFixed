@@ -389,26 +389,28 @@ label {
 }
 
 #fullSizeImage {
-  /* cursor: grab; Indicate interactivity */
-  transition: transform 0.1s ease-out; /* Smooth zoom transition */
-  transform-origin: center center; /* Default origin */
-  max-width: 100%; /* Ensure image doesn't overflow container initially */
-  max-height: 100%;
-  object-fit: contain;
-  /* Default cursor */
-  cursor: default;
+  transition: transform 0.1s ease-out; 
+  transform-origin: center center; 
+  max-width: 100%; /* Reinstated */
+  max-height: 100%; /* Reinstated */
+  object-fit: contain; /* Reinstated */
+  cursor: zoom-in; /* Simple zoom cursor */
+  display: block; 
+  margin: auto; 
 }
 
+/* Remove panning/grabbing styles */
+/*
 #fullSizeImage.can-grab {
   cursor: grab;
 }
-
 #fullSizeImage.grabbing {
   cursor: grabbing;
 }
+*/
 
-#fullSizeImage.zooming { /* This class might be redundant now */
-  /* cursor: grabbing; */
+#fullSizeImage.zooming { 
+  cursor: zoom-out; /* Change cursor when zoomed */
 }
 
 /* Modal Buttons (Close, Fullscreen) */

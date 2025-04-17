@@ -238,82 +238,40 @@ document.addEventListener("DOMContentLoaded", function () {
   let currentScale = 1;
   const zoomIntensity = 0.1;
   const maxScale = 5;
-  let dynamicMinScale = 0.1; // Initial small default min scale
-
-  // State variables for panning
-  let isPanning = false;
-  let startX, startY, currentTranslateX = 0, currentTranslateY = 0;
+  const minScale = 0.1; // Simple fixed minimum scale
 
   // Function to reset image transformations
   function resetImageTransform() {
-      currentScale = 1;
-      dynamicMinScale = 0.1; // Reset min scale too
-      currentTranslateX = 0; // Reset translation
-      currentTranslateY = 0; // Reset translation
-      modalImg.style.transform = 'scale(1) translate(0px, 0px)'; // Reset transform completely
+      currentScale = 1; 
+      // Remove translation reset, just reset scale transform
+      modalImg.style.transform = 'scale(1)'; 
       modalImg.style.transformOrigin = 'center center';
-      $(modalImg).removeClass('zooming can-grab grabbing');
-      isPanning = false;
+      $(modalImg).removeClass('zooming'); // Remove only zooming class
   }
 
   // When an image is clicked, open the modal
   $(document).on("click", "#videoContainer img", function () { 
-    resetImageTransform(); // Reset zoom/pan/translation when opening
+    resetImageTransform(); // Reset state
     modal.style.display = "block";
     modalImg.src = this.src;
-    
-    // Calculate dynamic min scale once the image is loaded
-    modalImg.onload = () => {
-      const containerWidth = modalImgContainer.clientWidth;
-      const containerHeight = modalImgContainer.clientHeight;
-      const imgWidth = modalImg.naturalWidth;
-      const imgHeight = modalImg.naturalHeight;
-
-      if (imgWidth > 0 && imgHeight > 0 && containerWidth > 0 && containerHeight > 0) {
-         // Calculate the scale factor applied by object-fit: contain
-         dynamicMinScale = Math.min(containerWidth / imgWidth, containerHeight / imgHeight);
-         // Ensure min scale is not excessively large if image is tiny, or too small
-         dynamicMinScale = Math.max(0.1, Math.min(1, dynamicMinScale)); 
-         console.log("Dynamic min scale set to:", dynamicMinScale);
-      } else {
-          dynamicMinScale = 0.1; // Fallback
-      }
-      // Reset current scale to ensure it's not below the new min scale initially
-      // Check if currentScale needs adjustment only if it was potentially set before onload
-      if (currentScale < dynamicMinScale) {
-          currentScale = dynamicMinScale;
-          modalImg.style.transform = `scale(${currentScale})`; // Apply immediately if needed
-      }
-
-      // Add can-grab class conditionally after scale is known
-      if (currentScale > dynamicMinScale) {
-          $(modalImg).addClass('can-grab');
-      }
-      modalImg.onload = null; // Remove listener after execution
-    };
-    // Handle cases where image might already be cached and onload doesn't fire reliably
-     if (modalImg.complete && modalImg.naturalWidth > 0) {
-        modalImg.onload();
-     }
+    // Remove onload logic for dynamic min scale
+    modalImg.onload = null; 
   });
 
   // When the close button is clicked, hide the modal
   span.onclick = function () {
     modal.style.display = "none";
-    resetImageTransform(); // Reset on close
+    resetImageTransform(); 
   };
 
   // Close the modal if clicked outside the image or buttons / Exit Fullscreen
   $(modal).on("click", function (e) {
-    // Check if the click target is NOT the image AND NOT the fullscreen button
     if (e.target !== modalImg && e.target !== fullscreenBtn && !fullscreenBtn.contains(e.target)) { 
         if (document.fullscreenElement === modalImgContainer) {
-            // If in fullscreen, clicking background exits fullscreen
             document.exitFullscreen();
         } else {
-            // If not in fullscreen, clicking background closes modal
             modal.style.display = "none";
-            resetImageTransform(); // Reset on close
+            resetImageTransform(); 
         }
     }
   });
@@ -342,159 +300,41 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Zooming logic (Wheel event on modal)
   modal.addEventListener('wheel', function(event) {
-      event.preventDefault(); // Prevent page scrolling when modal is open
-
-      // Calculate scale delta
+      event.preventDefault(); 
       let delta = event.deltaY > 0 ? -zoomIntensity : zoomIntensity;
       let newScale = currentScale + delta;
 
-      // Clamp scale using dynamicMinScale
-      newScale = Math.max(dynamicMinScale, Math.min(maxScale, newScale));
+      // Simple clamp
+      newScale = Math.max(minScale, Math.min(maxScale, newScale));
 
-      if (newScale !== currentScale) {
-          // Calculate mouse position relative to the image element still
+      if (Math.abs(newScale - currentScale) > 0.001) { 
           const rect = modalImg.getBoundingClientRect();
           if (rect.width === 0 || rect.height === 0) return; 
-          
-          let originXPercent = 50; 
-          let originYPercent = 50; 
-
-          // Check if cursor is inside the image bounds
+          let originXPercent = 50;
+          let originYPercent = 50;
           const isInside = event.clientX >= rect.left && event.clientX <= rect.right &&
                            event.clientY >= rect.top && event.clientY <= rect.bottom;
-
           if (isInside) {
-              // Cursor is inside, calculate origin based on cursor position
               const offsetX = event.clientX - rect.left;
               const offsetY = event.clientY - rect.top;
               originXPercent = (offsetX / rect.width) * 100;
               originYPercent = (offsetY / rect.height) * 100;
-          } else {
-              // Cursor is outside, use the default center origin
           }
-
-          // Apply transform origin and scale to the image
-          // Also reset translation when zooming
-          currentTranslateX = 0;
-          currentTranslateY = 0;
+          // Don't reset translation here as panning is removed
           modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
-          modalImg.style.transform = `scale(${newScale}) translate(0px, 0px)`; 
-          currentScale = newScale;
+          // Apply scale only
+          modalImg.style.transform = `scale(${newScale})`; 
+          currentScale = newScale; 
           
-          // Update grab cursor state based on new scale
-          if (currentScale > dynamicMinScale) {
-              $(modalImg).addClass('can-grab');
+          // Toggle zooming class based on simple scale > 1 check
+          if (currentScale > 1) {
+              $(modalImg).addClass('zooming');
           } else {
-              $(modalImg).removeClass('can-grab');
-          }
-      }
-      
-      // Add/remove class for cursor style (optional) - Applied to image
-      $(modalImg).addClass('zooming');
-      // Consider removing the class after a short timeout if needed
-      // setTimeout(() => { $(modalImg).removeClass('zooming'); }, 200);
-  });
-
-  // Reset zooming class on mouse up (optional) - Still attached to image
-  // modalImg.addEventListener('mouseup', () => { // This might conflict with panning mouseup
-  //    $(modalImg).removeClass('zooming'); 
-  // });
-  
-  // Double-click zoom logic
-  modalImg.addEventListener('dblclick', function(event) {
-      const rect = modalImg.getBoundingClientRect();
-      if (rect.width === 0 || rect.height === 0) return; // Image not loaded
-
-      const targetScale = 2; // Target scale for double-click zoom
-      let newScale;
-
-      // If current scale is already zoomed in (e.g., >= targetScale), zoom out to min
-      if (currentScale >= targetScale * 0.99) { // Use a small tolerance
-           newScale = dynamicMinScale;
-      } else {
-           newScale = targetScale;
-      }
-      
-      // Clamp scale just in case target is outside bounds (shouldn't happen often here)
-      newScale = Math.max(dynamicMinScale, Math.min(maxScale, newScale));
-
-      // Calculate click position relative to the image element
-      const offsetX = event.clientX - rect.left;
-      const offsetY = event.clientY - rect.top;
-
-      // Calculate percentage-based origin
-      const originXPercent = (offsetX / rect.width) * 100;
-      const originYPercent = (offsetY / rect.height) * 100;
-
-      // Reset translation on double-click zoom
-      currentTranslateX = 0;
-      currentTranslateY = 0;
-
-      // Apply transform origin and scale
-      modalImg.style.transition = 'transform 0.2s ease-out'; // Add transition for dblclick
-      modalImg.style.transformOrigin = `${originXPercent}% ${originYPercent}%`;
-      modalImg.style.transform = `scale(${newScale}) translate(0px, 0px)`;
-      currentScale = newScale;
-      
-      // Update grab cursor state
-      if (currentScale > dynamicMinScale) {
-          $(modalImg).addClass('can-grab');
-      } else {
-          $(modalImg).removeClass('can-grab');
-      }
-
-      // Remove transition after it completes to prevent affecting wheel zoom
-      setTimeout(() => {
-          modalImg.style.transition = 'transform 0.1s ease-out'; // Revert to wheel zoom transition
-      }, 200);
-  });
-
-  // Panning Logic
-  modalImg.addEventListener('mousedown', (e) => {
-      // Only pan if zoomed in (scale is larger than the fitted scale)
-      if (currentScale > dynamicMinScale) {
-          e.preventDefault(); // Prevent default image dragging
-          isPanning = true;
-          startX = e.clientX - currentTranslateX; // Store initial offset correctly
-          startY = e.clientY - currentTranslateY;
-          $(modalImg).removeClass('can-grab').addClass('grabbing');
-      }
-  });
-
-  // Use document listeners for mousemove/mouseup to capture events outside the image
-  document.addEventListener('mousemove', (e) => {
-      if (!isPanning) return;
-      
-      // No need to prevent default here unless it causes issues
-      currentTranslateX = e.clientX - startX;
-      currentTranslateY = e.clientY - startY;
-      
-      // Apply the translation along with the current scale
-      modalImg.style.transform = `scale(${currentScale}) translate(${currentTranslateX}px, ${currentTranslateY}px)`;
-  });
-
-  document.addEventListener('mouseup', (e) => {
-      if (isPanning) {
-          isPanning = false;
-          $(modalImg).removeClass('grabbing');
-          // Re-add can-grab if still zoomed
-          if (currentScale > dynamicMinScale) {
-              $(modalImg).addClass('can-grab');
+              $(modalImg).removeClass('zooming');
           }
       }
   });
   
-  // Optional: Stop panning if mouse leaves the window entirely
-  document.addEventListener('mouseleave', (e) => {
-       if (isPanning) {
-          isPanning = false;
-          $(modalImg).removeClass('grabbing');
-          if (currentScale > dynamicMinScale) {
-              $(modalImg).addClass('can-grab');
-          }
-      }
-  });
-
   // Result
   $("#imgurForm").on("submit", function (event) {
     event.preventDefault();

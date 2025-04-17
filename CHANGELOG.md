@@ -12,10 +12,8 @@
   - Added HTML structure for the loader in `api/index.php`.
   - Added CSS styles for the loader and its animation in `css/style.css`.
   - Modified `js/main.js` to show the loader before the AJAX request and hide it upon completion (success or error).
-- Added double-click zoom functionality to the image modal.
 - Implemented conditional video autoplay on desktop (screen width >= 1920px): Videos now only load and attempt to autoplay when they scroll into the viewport, using IntersectionObserver. Videos are paused when scrolled out of view.
 - Implemented client-side caching using `localStorage` to store results for submitted URL sets for 1 hour, reducing redundant processing.
-- Added panning (drag-to-move) functionality to zoomed images in the modal.
 
 ### Fixed
 - Added more detailed console logging to the IntersectionObserver callback for video autoplay to help diagnose issues.
@@ -42,12 +40,16 @@
 - Simplified initial view mode selection: Defaults to Grid View if screen width >= 1024px, otherwise Column View (no longer checks first item type).
 - Lowered screen width threshold to 1024px for auto-selecting Grid View as default when the first result is an image.
 - Updated initial view mode heuristic to consider screen width (default to Grid View for images only if screen width >= 1024px).
-- Prevent zooming out smaller than the initial fitted size in the image modal.
+- Image modal zoom logic finalized: Image opens fitted via JS transform; zoom-out is restricted to this initial size; double-click toggles fit/2x.
+- Image modal initial view now correctly fits via CSS max-width/height. Zoom-out is restricted to this initial fitted size by clamping the JS scale variable.
 - Image modal zoom now centers on the image middle if the cursor is outside the image bounds during scroll; otherwise, centers on the cursor.
 - Hide drag-and-drop related UI elements (radio buttons, text label, floating button) on screens with width <= 500px using CSS.
 - Disabled drag-and-drop sorting functionality (Sortable.js) on screens with width <= 500px. Feature is re-enabled/disabled dynamically on window resize.
 
 ### Removed
+- Removed image panning functionality.
+- Removed double-click zoom functionality.
+- Removed complex minimum zoom logic; reverted to simple fixed min scale.
 - Removed console logging statements previously added for debugging video autoplay.
 - Removed all code related to processing Twitter/X status URLs.
 - Removed the old loading indicator. 
